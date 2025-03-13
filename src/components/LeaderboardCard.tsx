@@ -42,12 +42,12 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({ donor, index }) => {
       transition={{ duration: 0.3, delay: index * 0.1 }}
       className={`leaderboard-item glass-card ${index < 3 ? getBackgroundStyle(index + 1) : ''} relative overflow-hidden`}
     >
-      <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-donation-purple rounded-l-xl" />
+      <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-donation-primary rounded-l-xl" />
       
       <div className="flex items-center justify-between gap-4 p-4">
         <div className="flex items-center space-x-4">
           <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
-            index < 3 ? 'bg-white/20' : 'bg-donation-purple/10'
+            index < 3 ? 'bg-white/20' : 'bg-donation-primary/10'
           }`}>
             {getRankIcon(index + 1)}
           </div>
@@ -70,8 +70,8 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({ donor, index }) => {
         </div>
         
         <div className="text-right">
-          <div className="text-2xl font-bold">${donor.amount.toLocaleString()}</div>
-          <div className="text-xs opacity-70">{new Date(donor.date).toLocaleDateString()}</div>
+          <div className="text-2xl font-bold">₹{donor.amount.toLocaleString('en-IN')}</div>
+          <div className="text-xs opacity-70">{new Date(donor.date).toLocaleDateString('en-IN')}</div>
         </div>
       </div>
       

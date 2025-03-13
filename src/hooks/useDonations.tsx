@@ -18,85 +18,85 @@ interface DonationsContextType {
   error: Error | null;
 }
 
-// Sample initial donations data
+// Sample initial donations data with Indian names and INR amounts
 const initialDonations: Donation[] = [
   {
     id: '1',
-    name: 'John Smith',
-    email: 'john@example.com',
-    amount: 250,
+    name: 'Rajesh Kumar',
+    email: 'rajesh@example.com',
+    amount: 5000,
     method: 'card',
     date: '2023-05-15T10:30:00Z',
   },
   {
     id: '2',
-    name: 'Emma Johnson',
-    email: 'emma@example.com',
-    amount: 100,
+    name: 'Priya Sharma',
+    email: 'priya@example.com',
+    amount: 2000,
     method: 'upi',
     date: '2023-05-16T14:20:00Z',
   },
   {
     id: '3',
-    name: 'Michael Brown',
-    email: 'michael@example.com',
-    amount: 500,
+    name: 'Amit Patel',
+    email: 'amit@example.com',
+    amount: 10000,
     method: 'card',
     date: '2023-05-16T09:45:00Z',
   },
   {
     id: '4',
-    name: 'Sarah Davis',
-    email: 'sarah@example.com',
-    amount: 75,
+    name: 'Deepa Nair',
+    email: 'deepa@example.com',
+    amount: 1500,
     method: 'upi',
     date: '2023-05-17T16:10:00Z',
   },
   {
     id: '5',
-    name: 'David Wilson',
-    email: 'david@example.com',
-    amount: 350,
+    name: 'Suresh Reddy',
+    email: 'suresh@example.com',
+    amount: 7500,
     method: 'cash',
     date: '2023-05-18T11:30:00Z',
   },
   {
     id: '6',
-    name: 'Jessica Taylor',
-    email: 'jessica@example.com',
-    amount: 150,
+    name: 'Meera Iyer',
+    email: 'meera@example.com',
+    amount: 3000,
     method: 'card',
     date: '2023-05-18T13:20:00Z',
   },
   {
     id: '7',
-    name: 'James Anderson',
-    email: 'james@example.com',
-    amount: 200,
+    name: 'Vikram Singh',
+    email: 'vikram@example.com',
+    amount: 4000,
     method: 'upi',
     date: '2023-05-19T10:00:00Z',
   },
   {
     id: '8',
-    name: 'Lisa Thomas',
-    email: 'lisa@example.com',
-    amount: 300,
+    name: 'Ananya Das',
+    email: 'ananya@example.com',
+    amount: 6000,
     method: 'card',
     date: '2023-05-19T15:45:00Z',
   },
   {
     id: '9',
-    name: 'Robert Martinez',
-    email: 'robert@example.com',
-    amount: 450,
+    name: 'Ravi Menon',
+    email: 'ravi@example.com',
+    amount: 8500,
     method: 'cash',
     date: '2023-05-20T09:30:00Z',
   },
   {
     id: '10',
-    name: 'Emily White',
-    email: 'emily@example.com',
-    amount: 125,
+    name: 'Kavita Joshi',
+    email: 'kavita@example.com',
+    amount: 2500,
     method: 'upi',
     date: '2023-05-20T14:15:00Z',
   },
@@ -117,14 +117,14 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Check if we have donations in localStorage
-        const storedDonations = localStorage.getItem('colordon_donations');
+        const storedDonations = localStorage.getItem('happydonation_donations');
         
         if (storedDonations) {
           setDonations(JSON.parse(storedDonations));
         } else {
           // Use initial data
           setDonations(initialDonations);
-          localStorage.setItem('colordon_donations', JSON.stringify(initialDonations));
+          localStorage.setItem('happydonation_donations', JSON.stringify(initialDonations));
         }
       } catch (err) {
         setError(err as Error);
@@ -151,7 +151,7 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setDonations(updatedDonations);
     
     // Save to localStorage
-    localStorage.setItem('colordon_donations', JSON.stringify(updatedDonations));
+    localStorage.setItem('happydonation_donations', JSON.stringify(updatedDonations));
     
     // In a real app, we would also send this to the server
     console.log('Donation added:', newDonation);

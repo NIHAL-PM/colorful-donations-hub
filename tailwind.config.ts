@@ -64,12 +64,11 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				donation: {
-					purple: '#9b87f5',
-					teal: '#33C3F0',
-					orange: '#FEC6A1',
-					pink: '#FFDEE2',
-					blue: '#D3E4FD',
-					yellow: '#FEF7CD'
+					primary: '#4F9D69', // Green primary color
+					secondary: '#8FCFD1', // Soft teal
+					accent: '#F2D0A4', // Warm accent
+					light: '#F9F3DF', // Light background
+					dark: '#403E43'  // Dark text
 				}
 			},
 			borderRadius: {
@@ -143,12 +142,12 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-				'gradient-primary': 'linear-gradient(90deg, #9b87f5 0%, #33C3F0 100%)',
-				'gradient-secondary': 'linear-gradient(108deg, #FEC6A1 10%, #FFDEE2 90%)',
-				'gradient-accent': 'linear-gradient(90deg, #FEF7CD 0%, #D3E4FD 100%)',
-				'gradient-leaderboard': 'linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)',
-				'gradient-admin': 'linear-gradient(90deg, hsla(46, 73%, 75%, 1) 0%, hsla(176, 73%, 88%, 1) 100%)',
-				'gradient-payment': 'linear-gradient(90deg, hsla(39, 100%, 77%, 1) 0%, hsla(22, 90%, 57%, 1) 100%)'
+				'gradient-primary': 'linear-gradient(90deg, #4F9D69 0%, #8FCFD1 100%)',
+				'gradient-secondary': 'linear-gradient(108deg, #F2D0A4 10%, #F9F3DF 90%)',
+				'gradient-accent': 'linear-gradient(90deg, #F9F3DF 0%, #8FCFD1 100%)',
+				'gradient-leaderboard': 'linear-gradient(90deg, #e6e9f0 0%, #eef1f5 100%)',
+				'gradient-admin': 'linear-gradient(90deg, #F2D0A4 0%, #F9F3DF 100%)',
+				'gradient-payment': 'linear-gradient(90deg, #F2D0A4 0%, #4F9D69 100%)'
 			},
 			backdropFilter: {
 				'none': 'none',

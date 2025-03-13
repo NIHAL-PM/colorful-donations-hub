@@ -177,12 +177,12 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
                 onChange={e => setUpiId(e.target.value)}
                 className="glass-input"
               />
-              <p className="text-sm text-gray-500">Enter your UPI ID (e.g., username@bankname)</p>
+              <p className="text-sm text-gray-500">Enter your UPI ID (e.g., username@ybl or username@paytm)</p>
             </div>
             
             <div className="pt-4 grid grid-cols-3 gap-3">
               {['BHIM', 'Google Pay', 'PhonePe'].map((app) => (
-                <div key={app} className="border rounded-lg p-3 text-center cursor-pointer hover:border-donation-purple/50 hover:bg-donation-purple/5 transition-colors">
+                <div key={app} className="border rounded-lg p-3 text-center cursor-pointer hover:border-donation-primary/50 hover:bg-donation-primary/5 transition-colors">
                   <div className="w-12 h-12 bg-gray-100 rounded-full mx-auto mb-2"></div>
                   <span className="text-sm">{app}</span>
                 </div>
@@ -193,12 +193,12 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
           <TabsContent value="cash" className="space-y-4 animate-slide-up">
             <div className="flex items-center p-4 border border-green-200 rounded-lg bg-green-50">
               <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
-              <p className="text-green-700">Cash payment will be collected on delivery</p>
+              <p className="text-green-700">Cash payment will be collected at the Nilgiri College campus</p>
             </div>
             
             <div className="space-y-2">
               <p className="text-sm text-gray-500">
-                You can pay with cash when your donation is picked up or when you visit our center.
+                Visit the Happiness Club desk at the college to make your cash donation.
               </p>
               <p className="text-sm text-gray-500">
                 Make sure to keep a copy of your donation receipt.
@@ -210,13 +210,13 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
       
       <CardFooter className="flex justify-between bg-gray-50 p-4">
         <div className="text-lg font-medium">
-          Total: <span className="text-donation-purple">${amount.toFixed(2)}</span>
+          Total: <span className="text-donation-primary">₹{amount.toLocaleString('en-IN')}</span>
         </div>
         <Button 
           onClick={handlePayment}
           disabled={!getPaymentValidity() || processing}
           className={`min-w-[120px] ${processing ? 'opacity-80' : ''}`}
-          style={{ background: 'linear-gradient(90deg, #9b87f5 0%, #33C3F0 100%)' }}
+          style={{ background: 'linear-gradient(90deg, #4F9D69 0%, #8FCFD1 100%)' }}
         >
           {processing ? 'Processing...' : 'Pay Now'}
         </Button>

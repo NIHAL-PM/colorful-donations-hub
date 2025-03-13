@@ -22,19 +22,19 @@ const Leaderboard = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-10"
         >
-          <div className="inline-block rounded-full bg-donation-purple/10 px-4 py-1.5 mb-4">
-            <span className="text-sm font-medium text-donation-purple flex items-center">
+          <div className="inline-block rounded-full bg-donation-primary/10 px-4 py-1.5 mb-4">
+            <span className="text-sm font-medium text-donation-primary flex items-center">
               <Trophy size={14} className="mr-1" />
               Top Contributors
             </span>
           </div>
           
           <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
-            Leaderboard
+            Donation Leaderboard
           </h1>
           
           <p className="text-gray-600 max-w-xl mx-auto">
-            Recognizing our most generous donors. Every contribution makes a difference in our mission.
+            Recognizing the generous donors of Nilgiri College's Happiness Club. Every contribution makes a difference in our mission.
           </p>
         </motion.div>
         

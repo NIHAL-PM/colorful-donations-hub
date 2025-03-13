@@ -10,10 +10,10 @@ import { useDonations } from '@/hooks/useDonations';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 
-const presetAmounts = [10, 25, 50, 100, 250];
+const presetAmounts = [500, 1000, 2000, 5000, 10000];
 
 const DonationForm: React.FC = () => {
-  const [amount, setAmount] = useState(50);
+  const [amount, setAmount] = useState(1000);
   const [customAmount, setCustomAmount] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -75,7 +75,7 @@ const DonationForm: React.FC = () => {
     setStep(3);
     toast({
       title: "Thank you for your donation!",
-      description: `Your donation of $${paidAmount.toFixed(2)} will help make a difference.`,
+      description: `Your donation of ₹${paidAmount.toFixed(0)} will help make a difference.`,
     });
   };
 
@@ -102,11 +102,11 @@ const DonationForm: React.FC = () => {
               onClick={() => handlePresetAmountClick(preset)}
               className={`flex-1 min-w-[80px] transition-all ${
                 amount === preset && customAmount === '' 
-                  ? 'bg-donation-purple text-white border-donation-purple' 
-                  : 'hover:bg-donation-purple/10 hover:border-donation-purple/30'
+                  ? 'bg-donation-primary text-white border-donation-primary' 
+                  : 'hover:bg-donation-primary/10 hover:border-donation-primary/30'
               }`}
             >
-              ${preset}
+              ₹{preset}
             </Button>
           ))}
           
@@ -123,22 +123,22 @@ const DonationForm: React.FC = () => {
         
         <div className="pt-4 pb-2">
           <Slider
-            defaultValue={[50]}
-            max={500}
-            min={5}
-            step={5}
+            defaultValue={[1000]}
+            max={20000}
+            min={100}
+            step={100}
             value={[amount]}
             onValueChange={handleSliderChange}
             className="py-4"
           />
           <div className="flex justify-between text-sm text-gray-500">
-            <span>$5</span>
-            <span>$500+</span>
+            <span>₹100</span>
+            <span>₹20,000+</span>
           </div>
         </div>
         
         <div className="flex items-center justify-center py-4">
-          <div className="text-3xl font-bold text-donation-purple">${amount.toFixed(2)}</div>
+          <div className="text-3xl font-bold text-donation-primary">₹{amount.toLocaleString('en-IN')}</div>
         </div>
       </div>
       
@@ -204,7 +204,7 @@ const DonationForm: React.FC = () => {
       <h2 className="text-2xl font-bold">Thank You!</h2>
       
       <p className="text-gray-600 max-w-md mx-auto">
-        Your donation of <span className="font-medium text-donation-purple">${amount.toFixed(2)}</span> has been processed successfully. A confirmation email has been sent to {email}.
+        Your donation of <span className="font-medium text-donation-primary">₹{amount.toLocaleString('en-IN')}</span> has been processed successfully. A confirmation email has been sent to {email}.
       </p>
       
       <div className="pt-4">

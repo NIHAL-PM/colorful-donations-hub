@@ -47,16 +47,18 @@ const Navbar: React.FC = () => {
           onClick={closeMenu}
         >
           <span className="animate-float">
-            <Heart className="h-6 w-6 text-donation-purple" fill="#9b87f5" />
+            <Heart className="h-6 w-6 text-donation-primary" fill="#4F9D69" />
           </span>
-          <span className="font-display font-bold text-2xl animated-gradient-text">ColorDon</span>
+          <span className="font-display font-bold text-2xl text-donation-dark">
+            Happy <span className="text-donation-primary">Donation</span>
+          </span>
         </Link>
         
         {isMobile ? (
           <>
             <button 
               onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-donation-purple focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-donation-primary focus:outline-none"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -70,8 +72,8 @@ const Navbar: React.FC = () => {
                     to={item!.path}
                     className={`flex items-center space-x-2 p-3 rounded-lg transition-all duration-300 ${
                       location.pathname === item!.path
-                        ? 'bg-donation-purple text-white'
-                        : 'hover:bg-donation-purple/10'
+                        ? 'bg-donation-primary text-white'
+                        : 'hover:bg-donation-primary/10'
                     }`}
                     onClick={closeMenu}
                   >
@@ -83,7 +85,7 @@ const Navbar: React.FC = () => {
                 {user ? (
                   <Button 
                     variant="ghost" 
-                    className="w-full justify-start mt-4 hover:bg-donation-purple/10"
+                    className="w-full justify-start mt-4 hover:bg-donation-primary/10"
                     onClick={() => {
                       logout();
                       closeMenu();
@@ -113,8 +115,8 @@ const Navbar: React.FC = () => {
                   to={item!.path}
                   className={`inline-flex items-center px-4 py-2 rounded-full font-medium transition-all duration-300 ${
                     location.pathname === item!.path
-                      ? 'bg-donation-purple text-white shadow-sm'
-                      : 'hover:bg-donation-purple/10'
+                      ? 'bg-donation-primary text-white shadow-sm'
+                      : 'hover:bg-donation-primary/10'
                   }`}
                 >
                   {item!.icon}
@@ -126,7 +128,7 @@ const Navbar: React.FC = () => {
             {user ? (
               <Button 
                 variant="ghost" 
-                className="hover:bg-donation-purple/10"
+                className="hover:bg-donation-primary/10"
                 onClick={logout}
               >
                 <LogOut size={18} className="mr-1" />
