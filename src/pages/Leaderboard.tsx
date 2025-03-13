@@ -15,15 +15,28 @@ const Leaderboard = () => {
       <AnimatedBackground variant="leaderboard" />
       <Navbar />
       
-      <div className="container mx-auto px-4 pt-32 pb-20">
+      <div className="container mx-auto px-4 pt-24 md:pt-32 pb-12 md:pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-10"
+          className="text-center mb-8"
         >
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/dc5f60a7-e574-4624-9179-84afebf69ff9.png" 
+              alt="Nilgiri College" 
+              className="h-12" 
+            />
+          </div>
+          
           <div className="inline-block rounded-full bg-donation-primary/10 px-4 py-1.5 mb-4">
             <span className="text-sm font-medium text-donation-primary flex items-center">
+              <img 
+                src="/lovable-uploads/b8adb940-cf0a-4902-89fd-01b317af12a5.png" 
+                alt="Happiness Centre" 
+                className="h-4 mr-2" 
+              />
               <Trophy size={14} className="mr-1" />
               Top Contributors
             </span>
@@ -42,6 +55,7 @@ const Leaderboard = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
+          className="max-w-3xl mx-auto"
         >
           {isLoading ? (
             <div className="text-center py-10">Loading leaderboard data...</div>

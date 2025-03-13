@@ -12,18 +12,30 @@ const Donate = () => {
       <AnimatedBackground variant="donation" />
       <Navbar />
       
-      <div className="container mx-auto px-4 pt-32 pb-20">
+      <div className="container mx-auto px-4 pt-24 md:pt-32 pb-12 md:pb-20">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-10"
+            className="text-center mb-8"
           >
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/lovable-uploads/dc5f60a7-e574-4624-9179-84afebf69ff9.png" 
+                alt="Nilgiri College" 
+                className="h-12" 
+              />
+            </div>
+            
             <div className="inline-block rounded-full bg-donation-primary/10 px-4 py-1.5 mb-4">
               <span className="text-sm font-medium text-donation-primary flex items-center">
-                <ChevronRight size={14} className="mr-1" />
-                Nilgiri College Happiness Club
+                <img 
+                  src="/lovable-uploads/b8adb940-cf0a-4902-89fd-01b317af12a5.png" 
+                  alt="Happiness Centre" 
+                  className="h-4 mr-2" 
+                />
+                Happiness Club
               </span>
             </div>
             
@@ -48,7 +60,7 @@ const Donate = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-12 bg-white/60 backdrop-blur-sm rounded-xl p-6 max-w-2xl mx-auto"
+            className="mt-10 bg-white/60 backdrop-blur-sm rounded-xl p-6 max-w-2xl mx-auto"
           >
             <h3 className="text-lg font-medium mb-3">Where Your Donation Goes</h3>
             

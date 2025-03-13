@@ -37,21 +37,27 @@ const Navbar: React.FC = () => {
   return (
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
+        scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
       }`}
     >
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link 
           to="/" 
-          className="flex items-center space-x-2"
+          className="flex items-center"
           onClick={closeMenu}
         >
-          <span className="animate-float">
-            <Heart className="h-6 w-6 text-donation-primary" fill="#4F9D69" />
-          </span>
-          <span className="font-display font-bold text-2xl text-donation-dark">
-            Happy <span className="text-donation-primary">Donation</span>
-          </span>
+          <div className="flex items-center">
+            <img 
+              src="/lovable-uploads/b8adb940-cf0a-4902-89fd-01b317af12a5.png" 
+              alt="Happiness Centre" 
+              className="h-8 mr-2" 
+            />
+            <img 
+              src="/lovable-uploads/dc5f60a7-e574-4624-9179-84afebf69ff9.png" 
+              alt="Nilgiri College" 
+              className="h-8 hidden md:block" 
+            />
+          </div>
         </Link>
         
         {isMobile ? (
@@ -66,13 +72,30 @@ const Navbar: React.FC = () => {
             {/* Mobile menu */}
             <div className={`fixed inset-0 bg-white z-40 transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
               <div className="pt-20 px-6 space-y-4">
-                {navItems.map((item, i) => (
+                <div className="flex justify-center mb-8">
+                  <img 
+                    src="/lovable-uploads/dc5f60a7-e574-4624-9179-84afebf69ff9.png" 
+                    alt="Nilgiri College" 
+                    className="h-12" 
+                  />
+                </div>
+                
+                <Link
+                  to="/donate"
+                  className="flex items-center justify-center p-4 rounded-lg bg-donation-primary text-white text-lg font-bold shadow-lg"
+                  onClick={closeMenu}
+                >
+                  <Heart className="mr-2" />
+                  <span>Donate Now</span>
+                </Link>
+                
+                {navItems.slice(1).map((item, i) => (
                   <Link
                     key={i}
                     to={item!.path}
                     className={`flex items-center space-x-2 p-3 rounded-lg transition-all duration-300 ${
                       location.pathname === item!.path
-                        ? 'bg-donation-primary text-white'
+                        ? 'bg-donation-primary/10 text-donation-primary'
                         : 'hover:bg-donation-primary/10'
                     }`}
                     onClick={closeMenu}
@@ -107,15 +130,23 @@ const Navbar: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            <Link
+              to="/donate"
+              className="inline-flex items-center px-6 py-2.5 rounded-full font-bold text-white bg-donation-primary hover:bg-donation-primary/90 shadow-md transform hover:scale-105 transition-all duration-300"
+            >
+              <Heart size={18} className="mr-2" fill="white" />
+              <span>Donate Now</span>
+            </Link>
+            
             <div className="flex space-x-1">
-              {navItems.map((item, i) => (
+              {navItems.slice(1).map((item, i) => (
                 <Link
                   key={i}
                   to={item!.path}
                   className={`inline-flex items-center px-4 py-2 rounded-full font-medium transition-all duration-300 ${
                     location.pathname === item!.path
-                      ? 'bg-donation-primary text-white shadow-sm'
+                      ? 'bg-donation-primary/10 text-donation-primary'
                       : 'hover:bg-donation-primary/10'
                   }`}
                 >

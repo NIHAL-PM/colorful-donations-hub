@@ -92,7 +92,7 @@ const DonationForm: React.FC = () => {
       className="space-y-6"
     >
       <div className="space-y-2">
-        <h3 className="text-lg font-medium">Select donation amount</h3>
+        <h3 className="text-lg font-medium text-center">Select donation amount</h3>
         
         <div className="flex flex-wrap gap-2">
           {presetAmounts.map((preset) => (
@@ -116,7 +116,7 @@ const DonationForm: React.FC = () => {
               placeholder="Custom amount"
               value={customAmount}
               onChange={handleCustomAmountChange}
-              className="glass-input"
+              className="glass-input text-center"
             />
           </div>
         </div>
@@ -138,12 +138,12 @@ const DonationForm: React.FC = () => {
         </div>
         
         <div className="flex items-center justify-center py-4">
-          <div className="text-3xl font-bold text-donation-primary">₹{amount.toLocaleString('en-IN')}</div>
+          <div className="text-4xl font-bold text-donation-primary">₹{amount.toLocaleString('en-IN')}</div>
         </div>
       </div>
       
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Your information</h3>
+        <h3 className="text-lg font-medium text-center">Your information</h3>
         
         <div className="space-y-3">
           <Input
@@ -165,12 +165,17 @@ const DonationForm: React.FC = () => {
       
       <Button 
         onClick={handleContinue}
-        className="w-full py-6 text-lg bg-gradient-primary hover:opacity-90 transition-opacity"
+        className="w-full py-6 text-lg font-bold bg-donation-primary hover:bg-donation-primary/90 transition-all duration-300 shadow-lg transform hover:scale-105 animate-pulse-soft"
         disabled={amount <= 0 || !name || !email}
       >
-        Continue
+        <Heart className="mr-2" fill="white" />
+        <span>Donate ₹{amount.toLocaleString('en-IN')}</span>
         <ArrowRight className="ml-2 h-5 w-5" />
       </Button>
+      
+      <p className="text-center text-sm text-gray-500">
+        Your donation helps support the Happiness Club's initiatives at Nilgiri College
+      </p>
     </motion.div>
   );
 
