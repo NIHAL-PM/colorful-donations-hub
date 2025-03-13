@@ -29,19 +29,21 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ variant = 'defa
           animation: 'gradient-animation 15s ease infinite',
         }}
       />
-      <style jsx>{`
-        @keyframes gradient-animation {
-          0% {
-            background-position: 0% 50%;
+      <style>
+        {`
+          @keyframes gradient-animation {
+            0% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+            100% {
+              background-position: 0% 50%;
+            }
           }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </>
   );
 };
