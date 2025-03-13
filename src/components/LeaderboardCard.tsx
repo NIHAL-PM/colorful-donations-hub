@@ -13,7 +13,7 @@ export interface Donor {
   previousRank?: number;
 }
 
-interface LeaderboardCardProps {
+export interface LeaderboardCardProps {
   donor: Donor;
   index: number;
 }
@@ -44,7 +44,7 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({ donor, index }) => {
     >
       <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-donation-purple rounded-l-xl" />
       
-      <div className="flex items-center justify-between gap-4 p-1">
+      <div className="flex items-center justify-between gap-4 p-4">
         <div className="flex items-center space-x-4">
           <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
             index < 3 ? 'bg-white/20' : 'bg-donation-purple/10'

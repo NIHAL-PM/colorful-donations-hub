@@ -8,6 +8,7 @@ import { Heart, ArrowRight } from 'lucide-react';
 import PaymentMethods from './PaymentMethods';
 import { useDonations } from '@/hooks/useDonations';
 import { toast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const presetAmounts = [10, 25, 50, 100, 250];
 
@@ -19,6 +20,7 @@ const DonationForm: React.FC = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [step, setStep] = useState(1);
   const { addDonation } = useDonations();
+  const navigate = useNavigate();
 
   const handlePresetAmountClick = (value: number) => {
     setAmount(value);
@@ -75,6 +77,10 @@ const DonationForm: React.FC = () => {
       title: "Thank you for your donation!",
       description: `Your donation of $${paidAmount.toFixed(2)} will help make a difference.`,
     });
+  };
+
+  const navigateToLeaderboard = () => {
+    navigate('/leaderboard');
   };
 
   const renderStepOne = () => (
@@ -202,7 +208,7 @@ const DonationForm: React.FC = () => {
       </p>
       
       <div className="pt-4">
-        <Button onClick={() => window.location.href = '/leaderboard'} variant="outline" className="mx-auto">
+        <Button onClick={navigateToLeaderboard} variant="outline" className="mx-auto">
           View Leaderboard
         </Button>
       </div>
