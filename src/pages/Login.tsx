@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import AnimatedBackground from '@/components/AnimatedBackground';
 import { User, Lock, Mail, Key } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
