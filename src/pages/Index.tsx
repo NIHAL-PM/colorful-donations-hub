@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -6,13 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Heart, ChevronDown, ArrowRight, Users, Award } from 'lucide-react';
 import AnimatedBackground from '@/components/AnimatedBackground';
 import Navbar from '@/components/Navbar';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
 
 const Index = () => {
   const featuresRef = useRef<HTMLDivElement>(null);
+  const { leaderboard, isLoading } = useLeaderboard();
   
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+  
+  const topDonors = leaderboard.slice(0, 3);
   
   const features = [
     {
@@ -104,20 +107,28 @@ const Index = () => {
                 </div>
                 
                 <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-white/50 rounded-lg">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-donation-primary/10 flex items-center justify-center font-bold">
-                          {i}
+                  {isLoading ? (
+                    <div className="text-center py-3">Loading donors...</div>
+                  ) : topDonors.length > 0 ? (
+                    topDonors.map((donor, index) => (
+                      <div key={donor.id} className="flex items-center justify-between p-3 bg-white/50 rounded-lg">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-donation-primary/10 flex items-center justify-center font-bold">
+                            {index + 1}
+                          </div>
+                          <div className="ml-3">
+                            <div className="font-medium">{donor.name}</div>
+                            <div className="text-sm text-gray-500">{new Date(donor.date).toLocaleDateString('en-IN')}</div>
+                          </div>
                         </div>
-                        <div className="ml-3">
-                          <div className="font-medium">Happiness Hero {i}</div>
-                          <div className="text-sm text-gray-500">Recent donor</div>
-                        </div>
+                        <div className="font-bold text-donation-primary">₹{donor.amount.toLocaleString('en-IN')}</div>
                       </div>
-                      <div className="font-bold text-donation-primary">₹{(10000 / i).toFixed(0)}</div>
+                    ))
+                  ) : (
+                    <div className="text-center py-3">
+                      <p>No donations yet. Be the first!</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 
                 <div className="mt-6 text-center">
