@@ -1,7 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
 
-interface User {
+interface UserProfile {
   id: string;
   name: string;
   email: string;
@@ -9,87 +12,157 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
-  users: User[];
-  addUser: (user: Omit<User, 'id'> & { password: string }) => void;
-  deleteUser: (id: string) => void;
-  updateUser: (id: string, updates: Partial<Omit<User, 'id'>>) => void;
+  users: UserProfile[];
+  addUser: (user: { email: string; password: string; name: string; isAdmin: boolean }) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
+  updateUser: (id: string, updates: Partial<Omit<UserProfile, 'id'>>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users with passwords
-const initialMockUsers = [
-  { id: '1', email: 'admin@happydonation.com', password: 'admin123', name: 'Admin User', isAdmin: true },
-  { id: '2', email: 'user@happydonation.com', password: 'user123', name: 'Regular User', isAdmin: false },
-];
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [users, setUsers] = useState<(User & { password: string })[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
 
   useEffect(() => {
-    // Check for saved user in localStorage
-    const savedUser = localStorage.getItem('happydonation_user');
-    
-    // Check for saved users list in localStorage
-    const savedUsers = localStorage.getItem('happydonation_users');
-    
-    if (savedUser) {
+    // Check for current user session on load
+    const getCurrentUser = async () => {
       try {
-        setUser(JSON.parse(savedUser));
+        setIsLoading(true);
+        
+        // Get the session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          throw sessionError;
+        }
+        
+        if (session?.user) {
+          // Get profile for additional user info like admin status
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+          }
+          
+          if (profile) {
+            setUser({
+              id: session.user.id,
+              name: profile.name,
+              email: profile.email,
+              isAdmin: profile.is_admin
+            });
+          }
+        }
+        
+        // Set up auth state listener
+        const { data: { subscription } } = await supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (session?.user) {
+              // Get profile for additional user info like admin status
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+                
+              if (profileError) {
+                console.error('Error fetching profile:', profileError);
+              }
+              
+              if (profile) {
+                setUser({
+                  id: session.user.id,
+                  name: profile.name,
+                  email: profile.email,
+                  isAdmin: profile.is_admin
+                });
+              }
+            } else {
+              setUser(null);
+            }
+          }
+        );
+        
+        // Clean up the subscription
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
-        console.error('Failed to parse saved user:', error);
-        localStorage.removeItem('happydonation_user');
+        console.error('Error in auth setup:', error);
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
     
-    if (savedUsers) {
-      try {
-        setUsers(JSON.parse(savedUsers));
-      } catch (error) {
-        console.error('Failed to parse saved users:', error);
-        // Fallback to initial mock users
-        setUsers(initialMockUsers);
-        localStorage.setItem('happydonation_users', JSON.stringify(initialMockUsers));
-      }
-    } else {
-      // Initialize with mock users
-      setUsers(initialMockUsers);
-      localStorage.setItem('happydonation_users', JSON.stringify(initialMockUsers));
-    }
-    
-    setIsLoading(false);
+    getCurrentUser();
   }, []);
+  
+  useEffect(() => {
+    // Get all users (admin only)
+    const fetchUsers = async () => {
+      if (user?.isAdmin) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*');
+          
+          if (error) {
+            throw error;
+          }
+          
+          if (data) {
+            setUsers(data.map(profile => ({
+              id: profile.id,
+              name: profile.name,
+              email: profile.email,
+              isAdmin: profile.is_admin
+            })));
+          }
+        } catch (error) {
+          console.error('Error fetching users:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load users data',
+            variant: 'destructive',
+          });
+        }
+      }
+    };
+    
+    fetchUsers();
+  }, [user]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      const foundUser = users.find(u => u.email === email && u.password === password);
-      
-      if (foundUser) {
-        const { password, ...userWithoutPassword } = foundUser;
-        setUser(userWithoutPassword);
-        localStorage.setItem('happydonation_user', JSON.stringify(userWithoutPassword));
-        toast({
-          title: "Success",
-          description: "You have successfully logged in!",
-        });
-      } else {
-        throw new Error('Invalid email or password');
+      if (error) {
+        throw error;
       }
-    } catch (error) {
+      
+      toast({
+        title: "Success",
+        description: "You have successfully logged in!",
+      });
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: (error as Error).message || "An error occurred during login",
+        description: error.message || "An error occurred during login",
         variant: "destructive",
       });
       throw error;
@@ -98,44 +171,111 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('happydonation_user');
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    });
-  };
-
-  const addUser = (newUser: Omit<User, 'id'> & { password: string }) => {
-    // Check if email already exists
-    if (users.some(u => u.email === newUser.email)) {
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUser(null);
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "A user with this email already exists",
+        description: "Failed to log out: " + error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addUser = async (userData: { email: string; password: string; name: string; isAdmin: boolean }) => {
+    if (!user?.isAdmin) {
+      toast({
+        title: "Permission denied",
+        description: "Only administrators can add new users",
         variant: "destructive",
       });
       return;
     }
-
-    const userToAdd = {
-      ...newUser,
-      id: `user_${Date.now()}`,
-    };
-
-    const updatedUsers = [...users, userToAdd];
-    setUsers(updatedUsers);
-    localStorage.setItem('happydonation_users', JSON.stringify(updatedUsers));
-
-    toast({
-      title: "Success",
-      description: "User added successfully",
-    });
+    
+    try {
+      // Create user in Supabase Auth
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: userData.email,
+        password: userData.password,
+        email_confirm: true,
+        user_metadata: { name: userData.name }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.user) {
+        // Set admin status if needed
+        if (userData.isAdmin) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ is_admin: true })
+            .eq('id', data.user.id);
+          
+          if (updateError) {
+            throw updateError;
+          }
+        }
+        
+        toast({
+          title: "Success",
+          description: "User added successfully",
+        });
+        
+        // Refresh user list
+        if (user?.isAdmin) {
+          const { data: profiles, error: fetchError } = await supabase
+            .from('profiles')
+            .select('*');
+          
+          if (fetchError) {
+            throw fetchError;
+          }
+          
+          if (profiles) {
+            setUsers(profiles.map(profile => ({
+              id: profile.id,
+              name: profile.name,
+              email: profile.email,
+              isAdmin: profile.is_admin
+            })));
+          }
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to add user: " + error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const deleteUser = (id: string) => {
+  const deleteUser = async (id: string) => {
+    if (!user?.isAdmin) {
+      toast({
+        title: "Permission denied",
+        description: "Only administrators can delete users",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Prevent deleting yourself
-    if (user?.id === id) {
+    if (user.id === id) {
       toast({
         title: "Error",
         description: "You cannot delete your own account while logged in",
@@ -143,49 +283,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       return;
     }
-
-    const updatedUsers = users.filter(u => u.id !== id);
-    setUsers(updatedUsers);
-    localStorage.setItem('happydonation_users', JSON.stringify(updatedUsers));
-
-    toast({
-      title: "Success",
-      description: "User deleted successfully",
-    });
-  };
-
-  const updateUser = (id: string, updates: Partial<Omit<User, 'id'>>) => {
-    const userIndex = users.findIndex(u => u.id === id);
     
-    if (userIndex === -1) {
+    try {
+      // Delete user in Supabase Auth
+      const { error } = await supabase.auth.admin.deleteUser(id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update state
+      setUsers(prev => prev.filter(u => u.id !== id));
+      
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "User not found",
+        description: "Failed to delete user: " + error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateUser = async (id: string, updates: Partial<Omit<UserProfile, 'id'>>) => {
+    if (!user?.isAdmin && user?.id !== id) {
+      toast({
+        title: "Permission denied",
+        description: "You can only update your own profile unless you're an admin",
         variant: "destructive",
       });
       return;
     }
-
-    const updatedUsers = [...users];
-    updatedUsers[userIndex] = {
-      ...updatedUsers[userIndex],
-      ...updates,
-    };
-
-    setUsers(updatedUsers);
-    localStorage.setItem('happydonation_users', JSON.stringify(updatedUsers));
-
-    // If updating the currently logged-in user, update the user state and localStorage
-    if (user?.id === id) {
-      const { password, ...userWithoutPassword } = updatedUsers[userIndex];
-      setUser(userWithoutPassword);
-      localStorage.setItem('happydonation_user', JSON.stringify(userWithoutPassword));
+    
+    try {
+      // Update profile in database
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: updates.name,
+          email: updates.email,
+          is_admin: updates.isAdmin,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // If this is the current user, update state
+      if (user?.id === id) {
+        setUser(prev => prev ? { ...prev, ...updates } : null);
+      }
+      
+      // Update users list
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updates } : u));
+      
+      toast({
+        title: "Success",
+        description: "User updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update user: " + error.message,
+        variant: "destructive",
+      });
     }
-
-    toast({
-      title: "Success",
-      description: "User updated successfully",
-    });
   };
 
   return (
@@ -194,7 +361,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login, 
       logout, 
       isLoading, 
-      users: users.map(({ password, ...user }) => user), // Remove passwords when exposing users
+      users,
       addUser,
       deleteUser,
       updateUser

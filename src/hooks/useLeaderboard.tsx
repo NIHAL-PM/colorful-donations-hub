@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useDonations } from './useDonations';
 import type { Donor } from '@/components/LeaderboardCard';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LeaderboardContextType {
   leaderboard: Donor[];
@@ -25,9 +26,6 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setIsLoading(true);
       
       try {
-        // Simulate some processing delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
         // Get the previous leaderboard for rank comparison
         const prevLeaderboard = [...leaderboard];
         

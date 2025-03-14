@@ -9,13 +9,77 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      donations: {
+        Row: {
+          amount: number
+          date: string
+          email: string
+          id: string
+          message: string | null
+          method: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          date?: string
+          email: string
+          id?: string
+          message?: string | null
+          method: string
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          date?: string
+          email?: string
+          id?: string
+          message?: string | null
+          method?: string
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_admin: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          is_admin?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_admin?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      set_initial_admin: {
+        Args: {
+          admin_email: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
