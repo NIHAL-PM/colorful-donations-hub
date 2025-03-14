@@ -36,7 +36,7 @@ const Navbar = () => {
               className="h-8" 
             />
             <span className="font-bold text-xl font-display hidden md:inline">
-              <span className="text-donation-primary">Happy</span> Donation
+              <span className="text-donation-primary">Happy</span>Donation
             </span>
           </Link>
           

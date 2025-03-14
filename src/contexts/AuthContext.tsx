@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -24,8 +23,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Mock users with passwords
 const initialMockUsers = [
-  { id: '1', email: 'admin@colordon.com', password: 'admin123', name: 'Admin User', isAdmin: true },
-  { id: '2', email: 'user@colordon.com', password: 'user123', name: 'Regular User', isAdmin: false },
+  { id: '1', email: 'admin@happydonation.com', password: 'admin123', name: 'Admin User', isAdmin: true },
+  { id: '2', email: 'user@happydonation.com', password: 'user123', name: 'Regular User', isAdmin: false },
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,17 +34,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check for saved user in localStorage
-    const savedUser = localStorage.getItem('colordon_user');
+    const savedUser = localStorage.getItem('happydonation_user');
     
     // Check for saved users list in localStorage
-    const savedUsers = localStorage.getItem('colordon_users');
+    const savedUsers = localStorage.getItem('happydonation_users');
     
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
         console.error('Failed to parse saved user:', error);
-        localStorage.removeItem('colordon_user');
+        localStorage.removeItem('happydonation_user');
       }
     }
     
@@ -56,12 +55,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to parse saved users:', error);
         // Fallback to initial mock users
         setUsers(initialMockUsers);
-        localStorage.setItem('colordon_users', JSON.stringify(initialMockUsers));
+        localStorage.setItem('happydonation_users', JSON.stringify(initialMockUsers));
       }
     } else {
       // Initialize with mock users
       setUsers(initialMockUsers);
-      localStorage.setItem('colordon_users', JSON.stringify(initialMockUsers));
+      localStorage.setItem('happydonation_users', JSON.stringify(initialMockUsers));
     }
     
     setIsLoading(false);
@@ -79,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (foundUser) {
         const { password, ...userWithoutPassword } = foundUser;
         setUser(userWithoutPassword);
-        localStorage.setItem('colordon_user', JSON.stringify(userWithoutPassword));
+        localStorage.setItem('happydonation_user', JSON.stringify(userWithoutPassword));
         toast({
           title: "Success",
           description: "You have successfully logged in!",
@@ -101,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('colordon_user');
+    localStorage.removeItem('happydonation_user');
     toast({
       title: "Logged out",
       description: "You have been successfully logged out",
@@ -126,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updatedUsers = [...users, userToAdd];
     setUsers(updatedUsers);
-    localStorage.setItem('colordon_users', JSON.stringify(updatedUsers));
+    localStorage.setItem('happydonation_users', JSON.stringify(updatedUsers));
 
     toast({
       title: "Success",
@@ -147,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updatedUsers = users.filter(u => u.id !== id);
     setUsers(updatedUsers);
-    localStorage.setItem('colordon_users', JSON.stringify(updatedUsers));
+    localStorage.setItem('happydonation_users', JSON.stringify(updatedUsers));
 
     toast({
       title: "Success",
@@ -174,13 +173,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setUsers(updatedUsers);
-    localStorage.setItem('colordon_users', JSON.stringify(updatedUsers));
+    localStorage.setItem('happydonation_users', JSON.stringify(updatedUsers));
 
     // If updating the currently logged-in user, update the user state and localStorage
     if (user?.id === id) {
       const { password, ...userWithoutPassword } = updatedUsers[userIndex];
       setUser(userWithoutPassword);
-      localStorage.setItem('colordon_user', JSON.stringify(userWithoutPassword));
+      localStorage.setItem('happydonation_user', JSON.stringify(userWithoutPassword));
     }
 
     toast({

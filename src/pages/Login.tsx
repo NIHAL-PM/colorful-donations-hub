@@ -43,7 +43,7 @@ const Login = () => {
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold font-display">
-            <span className="animated-gradient-text">ColorDon</span>
+            <span className="animated-gradient-text">HappyDonation</span>
           </h1>
           <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
@@ -106,8 +106,8 @@ const Login = () => {
         
         <div className="mt-8 text-center text-sm text-gray-600">
           <p>Test accounts:</p>
-          <p className="mt-1">User: user@colordon.com / user123</p>
-          <p>Admin: admin@colordon.com / admin123</p>
+          <p className="mt-1">User: user@happydonation.com / user123</p>
+          <p>Admin: admin@happydonation.com / admin123</p>
         </div>
       </motion.div>
     </div>
