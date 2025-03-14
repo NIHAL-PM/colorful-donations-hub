@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Donate from "./pages/Donate";
 import Leaderboard from "./pages/Leaderboard";
 import Login from "./pages/Login";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DonationsProvider } from "./hooks/useDonations";
@@ -29,6 +30,7 @@ const App = () => (
                 <Route path="/donate" element={<Donate />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/admin" element={<Admin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -14,11 +14,16 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  users: User[];
+  addUser: (user: Omit<User, 'id'> & { password: string }) => void;
+  deleteUser: (id: string) => void;
+  updateUser: (id: string, updates: Partial<Omit<User, 'id'>>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const mockUsers = [
+// Mock users with passwords
+const initialMockUsers = [
   { id: '1', email: 'admin@colordon.com', password: 'admin123', name: 'Admin User', isAdmin: true },
   { id: '2', email: 'user@colordon.com', password: 'user123', name: 'Regular User', isAdmin: false },
 ];
@@ -26,10 +31,14 @@ const mockUsers = [
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [users, setUsers] = useState<(User & { password: string })[]>([]);
 
   useEffect(() => {
     // Check for saved user in localStorage
     const savedUser = localStorage.getItem('colordon_user');
+    
+    // Check for saved users list in localStorage
+    const savedUsers = localStorage.getItem('colordon_users');
     
     if (savedUser) {
       try {
@@ -38,6 +47,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to parse saved user:', error);
         localStorage.removeItem('colordon_user');
       }
+    }
+    
+    if (savedUsers) {
+      try {
+        setUsers(JSON.parse(savedUsers));
+      } catch (error) {
+        console.error('Failed to parse saved users:', error);
+        // Fallback to initial mock users
+        setUsers(initialMockUsers);
+        localStorage.setItem('colordon_users', JSON.stringify(initialMockUsers));
+      }
+    } else {
+      // Initialize with mock users
+      setUsers(initialMockUsers);
+      localStorage.setItem('colordon_users', JSON.stringify(initialMockUsers));
     }
     
     setIsLoading(false);
@@ -50,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const foundUser = mockUsers.find(u => u.email === email && u.password === password);
+      const foundUser = users.find(u => u.email === email && u.password === password);
       
       if (foundUser) {
         const { password, ...userWithoutPassword } = foundUser;
@@ -84,8 +108,98 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const addUser = (newUser: Omit<User, 'id'> & { password: string }) => {
+    // Check if email already exists
+    if (users.some(u => u.email === newUser.email)) {
+      toast({
+        title: "Error",
+        description: "A user with this email already exists",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const userToAdd = {
+      ...newUser,
+      id: `user_${Date.now()}`,
+    };
+
+    const updatedUsers = [...users, userToAdd];
+    setUsers(updatedUsers);
+    localStorage.setItem('colordon_users', JSON.stringify(updatedUsers));
+
+    toast({
+      title: "Success",
+      description: "User added successfully",
+    });
+  };
+
+  const deleteUser = (id: string) => {
+    // Prevent deleting yourself
+    if (user?.id === id) {
+      toast({
+        title: "Error",
+        description: "You cannot delete your own account while logged in",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedUsers = users.filter(u => u.id !== id);
+    setUsers(updatedUsers);
+    localStorage.setItem('colordon_users', JSON.stringify(updatedUsers));
+
+    toast({
+      title: "Success",
+      description: "User deleted successfully",
+    });
+  };
+
+  const updateUser = (id: string, updates: Partial<Omit<User, 'id'>>) => {
+    const userIndex = users.findIndex(u => u.id === id);
+    
+    if (userIndex === -1) {
+      toast({
+        title: "Error",
+        description: "User not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedUsers = [...users];
+    updatedUsers[userIndex] = {
+      ...updatedUsers[userIndex],
+      ...updates,
+    };
+
+    setUsers(updatedUsers);
+    localStorage.setItem('colordon_users', JSON.stringify(updatedUsers));
+
+    // If updating the currently logged-in user, update the user state and localStorage
+    if (user?.id === id) {
+      const { password, ...userWithoutPassword } = updatedUsers[userIndex];
+      setUser(userWithoutPassword);
+      localStorage.setItem('colordon_user', JSON.stringify(userWithoutPassword));
+    }
+
+    toast({
+      title: "Success",
+      description: "User updated successfully",
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      isLoading, 
+      users: users.map(({ password, ...user }) => user), // Remove passwords when exposing users
+      addUser,
+      deleteUser,
+      updateUser
+    }}>
       {children}
     </AuthContext.Provider>
   );
