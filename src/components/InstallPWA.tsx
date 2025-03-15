@@ -18,7 +18,8 @@ const InstallPWA = () => {
   useEffect(() => {
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches || 
-        window.navigator.standalone === true) {
+        // Check for iOS standalone mode in a type-safe way
+        (navigator as any).standalone === true) {
       setIsAppInstalled(true);
       return;
     }
@@ -68,7 +69,7 @@ const InstallPWA = () => {
   };
   
   // Only show on mobile and when install is available
-  if (!isMobile || isAppInstalled || !deferredPrompt) {
+  if (!isMobile || isAppInstalled) {
     return null;
   }
   
