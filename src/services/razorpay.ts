@@ -25,7 +25,6 @@ export interface RazorpayOptions {
   theme?: {
     color?: string;
   };
-  // Adding the handler property to the interface
   handler?: (response: RazorpaySuccessResponse) => void;
 }
 
@@ -84,7 +83,7 @@ export const initiateRazorpayPayment = async (
       name: options.name || 'Happy Donation',
       description: options.description || 'Donation to Happiness Club',
       theme: {
-        color: '#4F9D69',
+        color: '#8B5CF6', // Updated to match our new purple primary color
         ...options.theme,
       },
       handler: function (response: RazorpaySuccessResponse) {
