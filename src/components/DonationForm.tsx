@@ -1,14 +1,15 @@
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Heart, ArrowRight } from 'lucide-react';
+import { Heart, ArrowRight, CreditCard } from 'lucide-react';
 import PaymentMethods from './PaymentMethods';
 import { useDonations } from '@/hooks/useDonations';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const presetAmounts = [500, 1000, 2000, 5000, 10000];
 
@@ -17,10 +18,20 @@ const DonationForm: React.FC = () => {
   const [customAmount, setCustomAmount] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
   const [showPayment, setShowPayment] = useState(false);
   const [step, setStep] = useState(1);
   const { addDonation } = useDonations();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Prefill form if user is logged in
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
 
   const handlePresetAmountClick = (value: number) => {
     setAmount(value);
@@ -70,6 +81,7 @@ const DonationForm: React.FC = () => {
       amount: paidAmount,
       method,
       date: new Date().toISOString(),
+      message: message,
     });
     
     setStep(3);
@@ -84,147 +96,226 @@ const DonationForm: React.FC = () => {
   };
 
   const renderStepOne = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium text-center">Select donation amount</h3>
-        
-        <div className="flex flex-wrap gap-2">
-          {presetAmounts.map((preset) => (
-            <Button
-              key={preset}
-              variant="outline"
-              onClick={() => handlePresetAmountClick(preset)}
-              className={`flex-1 min-w-[80px] transition-all ${
-                amount === preset && customAmount === '' 
-                  ? 'bg-donation-primary text-white border-donation-primary' 
-                  : 'hover:bg-donation-primary/10 hover:border-donation-primary/30'
-              }`}
-            >
-              ₹{preset}
-            </Button>
-          ))}
+    <AnimatePresence mode="wait">
+      <motion.div
+        key="step1"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-6"
+      >
+        <div className="space-y-4">
+          <div className="text-center">
+            <h3 className="text-xl font-medium bg-gradient-to-r from-donation-primary to-donation-secondary bg-clip-text text-transparent mb-1">Select donation amount</h3>
+            <div className="w-20 h-1 bg-gradient-to-r from-donation-primary to-donation-secondary rounded-full mx-auto mb-4"></div>
+          </div>
           
-          <div className="w-full mt-2">
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {presetAmounts.map((preset) => (
+              <Button
+                key={preset}
+                type="button"
+                onClick={() => handlePresetAmountClick(preset)}
+                className={`rounded-xl transition-all duration-300 border-2 ${
+                  amount === preset && customAmount === '' 
+                    ? 'bg-donation-primary text-white border-donation-primary shadow-md shadow-donation-primary/20 scale-105' 
+                    : 'bg-white/30 hover:bg-donation-primary/10 border-donation-primary/30 hover:border-donation-primary/60'
+                }`}
+              >
+                ₹{preset.toLocaleString('en-IN')}
+              </Button>
+            ))}
+          </div>
+          
+          <div className="relative mt-4">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-500">₹</span>
+            </div>
             <Input
               type="text"
               placeholder="Custom amount"
               value={customAmount}
               onChange={handleCustomAmountChange}
-              className="glass-input text-center"
+              className="pl-8 glass-input text-center backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+            />
+          </div>
+          
+          <div className="pt-4 pb-2">
+            <Slider
+              defaultValue={[1000]}
+              max={20000}
+              min={100}
+              step={100}
+              value={[amount]}
+              onValueChange={handleSliderChange}
+              className="py-4"
+            />
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>₹100</span>
+              <span>₹20,000+</span>
+            </div>
+          </div>
+          
+          <motion.div 
+            className="flex items-center justify-center py-4"
+            animate={{ scale: [1, 1.05, 1], opacity: [0.9, 1, 0.9] }}
+            transition={{ repeat: Infinity, duration: 3 }}
+          >
+            <div className="relative px-8 py-3 rounded-lg overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-donation-primary/10 to-donation-secondary/10 rounded-lg"></div>
+              <div className="relative text-4xl font-bold bg-gradient-to-r from-donation-primary to-donation-secondary bg-clip-text text-transparent">
+                ₹{amount.toLocaleString('en-IN')}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="text-center">
+            <h3 className="text-xl font-medium bg-gradient-to-r from-donation-primary to-donation-secondary bg-clip-text text-transparent mb-1">Your information</h3>
+            <div className="w-20 h-1 bg-gradient-to-r from-donation-primary to-donation-secondary rounded-full mx-auto mb-4"></div>
+          </div>
+          
+          <div className="space-y-3">
+            <Input
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+            />
+            
+            <Input
+              type="email"
+              placeholder="Your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+            />
+
+            <Input
+              placeholder="Optional message (why you're donating)"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
             />
           </div>
         </div>
         
-        <div className="pt-4 pb-2">
-          <Slider
-            defaultValue={[1000]}
-            max={20000}
-            min={100}
-            step={100}
-            value={[amount]}
-            onValueChange={handleSliderChange}
-            className="py-4"
-          />
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>₹100</span>
-            <span>₹20,000+</span>
-          </div>
-        </div>
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Button 
+            onClick={handleContinue}
+            className="w-full py-6 text-lg font-bold relative overflow-hidden group"
+            style={{ 
+              background: 'linear-gradient(90deg, #4F9D69 0%, #8FCFD1 100%)',
+              boxShadow: '0 10px 15px -3px rgba(79, 157, 105, 0.2), 0 4px 6px -2px rgba(79, 157, 105, 0.1)'
+            }}
+            disabled={amount <= 0 || !name || !email}
+          >
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer -translate-x-full group-hover:translate-x-full transition-all duration-1000"></div>
+            <div className="flex items-center justify-center gap-2">
+              <Heart className="mr-2" fill="white" />
+              <span>Donate ₹{amount.toLocaleString('en-IN')}</span>
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </div>
+          </Button>
+        </motion.div>
         
-        <div className="flex items-center justify-center py-4">
-          <div className="text-4xl font-bold text-donation-primary">₹{amount.toLocaleString('en-IN')}</div>
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-center">Your information</h3>
-        
-        <div className="space-y-3">
-          <Input
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="glass-input"
-          />
-          
-          <Input
-            type="email"
-            placeholder="Your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="glass-input"
-          />
-        </div>
-      </div>
-      
-      <Button 
-        onClick={handleContinue}
-        className="w-full py-6 text-lg font-bold bg-donation-primary hover:bg-donation-primary/90 transition-all duration-300 shadow-lg transform hover:scale-105 animate-pulse-soft"
-        disabled={amount <= 0 || !name || !email}
-      >
-        <Heart className="mr-2" fill="white" />
-        <span>Donate ₹{amount.toLocaleString('en-IN')}</span>
-        <ArrowRight className="ml-2 h-5 w-5" />
-      </Button>
-      
-      <p className="text-center text-sm text-gray-500">
-        Your donation helps support the Happiness Club's initiatives at Nilgiri College
-      </p>
-    </motion.div>
+        <p className="text-center text-sm text-gray-600 italic">
+          Your donation helps support the Happiness Club's initiatives at Nilgiri College
+        </p>
+      </motion.div>
+    </AnimatePresence>
   );
 
   const renderStepTwo = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-    >
-      <PaymentMethods onPaymentComplete={handlePaymentComplete} amount={amount} />
-    </motion.div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key="step2"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+      >
+        <PaymentMethods onPaymentComplete={handlePaymentComplete} amount={amount} />
+        <Button 
+          variant="outline"
+          className="mt-4 w-full border-donation-primary/30 text-donation-primary hover:bg-donation-primary/10"
+          onClick={() => setStep(1)}
+        >
+          Go Back
+        </Button>
+      </motion.div>
+    </AnimatePresence>
   );
 
   const renderStepThree = () => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="text-center py-10 space-y-6"
-    >
+    <AnimatePresence mode="wait">
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 10 }}
-        className="w-20 h-20 bg-green-100 rounded-full mx-auto flex items-center justify-center"
+        key="step3"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="text-center py-10 space-y-6"
       >
-        <Heart className="h-10 w-10 text-green-600" fill="rgba(22, 163, 74, 0.5)" />
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 10 }}
+          className="w-24 h-24 bg-gradient-to-br from-green-100 to-donation-primary/20 rounded-full mx-auto flex items-center justify-center shadow-lg"
+        >
+          <Heart className="h-12 w-12 text-donation-primary" fill="rgba(79, 157, 105, 0.5)" />
+        </motion.div>
+        
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-donation-primary to-donation-secondary bg-clip-text text-transparent">Thank You!</h2>
+        
+        <p className="text-gray-600 max-w-md mx-auto">
+          Your donation of <span className="font-medium text-donation-primary">₹{amount.toLocaleString('en-IN')}</span> has been processed successfully. A confirmation email has been sent to {email}.
+        </p>
+        
+        <p className="text-sm text-gray-500 italic">Donation ID: {Math.random().toString(36).substring(2, 12).toUpperCase()}</p>
+        
+        <div className="pt-4 flex gap-4 justify-center">
+          <Button 
+            onClick={navigateToLeaderboard} 
+            className="bg-gradient-to-r from-donation-primary/80 to-donation-secondary/80 hover:from-donation-primary hover:to-donation-secondary transition-all"
+          >
+            View Leaderboard
+          </Button>
+          <Button 
+            onClick={() => navigate('/')} 
+            variant="outline"
+            className="border-donation-primary/30 text-donation-primary hover:bg-donation-primary/10"
+          >
+            Return Home
+          </Button>
+        </div>
       </motion.div>
-      
-      <h2 className="text-2xl font-bold">Thank You!</h2>
-      
-      <p className="text-gray-600 max-w-md mx-auto">
-        Your donation of <span className="font-medium text-donation-primary">₹{amount.toLocaleString('en-IN')}</span> has been processed successfully. A confirmation email has been sent to {email}.
-      </p>
-      
-      <div className="pt-4">
-        <Button onClick={navigateToLeaderboard} variant="outline" className="mx-auto">
-          View Leaderboard
-        </Button>
-      </div>
-    </motion.div>
+    </AnimatePresence>
   );
 
   return (
-    <div className="w-full max-w-md mx-auto glass-card p-6">
-      {step === 1 && renderStepOne()}
-      {step === 2 && renderStepTwo()}
-      {step === 3 && renderStepThree()}
+    <div className="w-full max-w-md mx-auto backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-gradient-to-r from-donation-primary/80 to-donation-secondary/80 p-4 text-white">
+        <div className="flex items-center justify-center gap-2">
+          {step === 1 && <CreditCard className="h-5 w-5" />}
+          {step === 2 && <Heart className="h-5 w-5" />}
+          {step === 3 && <Heart className="h-5 w-5" fill="white" />}
+          <h2 className="text-xl font-medium">
+            {step === 1 && "Make a Donation"}
+            {step === 2 && "Payment Information"}
+            {step === 3 && "Donation Complete"}
+          </h2>
+        </div>
+      </div>
+      <div className="p-6">
+        {step === 1 && renderStepOne()}
+        {step === 2 && renderStepTwo()}
+        {step === 3 && renderStepThree()}
+      </div>
     </div>
   );
 };
