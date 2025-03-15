@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
+import InstallPWA from './InstallPWA';
 
 const Navbar = () => {
   const location = useLocation();
@@ -219,6 +220,9 @@ const Navbar = () => {
           </nav>
         </motion.div>
       )}
+      
+      {/* Install PWA Button */}
+      <InstallPWA />
     </header>
   );
 };

@@ -6,7 +6,13 @@ const urlsToCache = [
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png',
+  '/icons/icon-128x128.png',
+  '/icons/icon-144x144.png',
+  '/icons/icon-152x152.png',
   '/icons/icon-192x192.png',
+  '/icons/icon-384x384.png',
   '/icons/icon-512x512.png',
   '/lovable-uploads/b8adb940-cf0a-4902-89fd-01b317af12a5.png',
   '/lovable-uploads/dc5f60a7-e574-4624-9179-84afebf69ff9.png'

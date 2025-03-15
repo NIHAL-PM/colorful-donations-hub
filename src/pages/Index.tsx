@@ -1,15 +1,35 @@
-import React, { useRef } from 'react';
+
+import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Heart, ChevronDown, ArrowRight, Users, Award } from 'lucide-react';
+import { Heart, ChevronDown, ArrowRight, Users, Award, Download } from 'lucide-react';
 import AnimatedBackground from '@/components/AnimatedBackground';
 import Navbar from '@/components/Navbar';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from 'sonner';
 
 const Index = () => {
   const featuresRef = useRef<HTMLDivElement>(null);
   const { leaderboard, isLoading } = useLeaderboard();
+  const isMobile = useIsMobile();
+  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+  
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent Chrome 67 and earlier from automatically showing the prompt
+      e.preventDefault();
+      // Store the event so it can be triggered later
+      setDeferredPrompt(e);
+    };
+    
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
   
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -34,6 +54,28 @@ const Index = () => {
       description: "See your ranking on our leaderboard and track the difference your donations are making."
     }
   ];
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      toast.info("Installation not available. Try opening in your mobile browser.", {
+        description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android, or Safari on iOS."
+      });
+      return;
+    }
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      toast.success("Thank you for installing our app!");
+      setDeferredPrompt(null);
+    } else {
+      toast.info("App installation was canceled");
+    }
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -76,15 +118,29 @@ const Index = () => {
               Support the Happiness Club's initiatives with a simple donation. Every contribution makes a difference in our community.
             </p>
             
-            <Link to="/donate">
-              <Button 
-                size="lg" 
-                className="bg-donation-primary hover:bg-donation-primary/90 transition-all duration-300 px-8 py-6 text-lg font-bold shadow-lg flex items-center gap-2 w-full sm:w-auto mx-auto transform hover:scale-105 animate-pulse-soft"
-              >
-                <Heart className="h-5 w-5" fill="white" />
-                <span>Donate Now</span>
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/donate">
+                <Button 
+                  size="lg" 
+                  className="bg-donation-primary hover:bg-donation-primary/90 transition-all duration-300 px-8 py-6 text-lg font-bold shadow-lg flex items-center gap-2 w-full sm:w-auto transform hover:scale-105 animate-pulse-soft"
+                >
+                  <Heart className="h-5 w-5" fill="white" />
+                  <span>Donate Now</span>
+                </Button>
+              </Link>
+              
+              {isMobile && deferredPrompt && (
+                <Button 
+                  onClick={handleInstallClick}
+                  size="lg" 
+                  variant="outline"
+                  className="border-donation-primary text-donation-primary hover:bg-donation-primary/10 transition-all duration-300 px-8 py-6 text-lg font-bold shadow-lg flex items-center gap-2 w-full sm:w-auto"
+                >
+                  <Download className="h-5 w-5" />
+                  <span>Install App</span>
+                </Button>
+              )}
+            </div>
           </motion.div>
           
           <motion.div 
