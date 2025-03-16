@@ -14,22 +14,33 @@ interface BeforeInstallPromptEvent extends Event {
 const InstallPWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
   const isMobile = useIsMobile();
   
   useEffect(() => {
+    console.log('InstallPWA component mounted');
+    
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches || 
         // Check for iOS standalone mode
         (window.navigator as any).standalone === true) {
+      console.log('App is already installed in standalone mode');
       setIsAppInstalled(true);
       return;
+    }
+    
+    // Check if the device is iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    if (isIOS && isMobile) {
+      console.log('iOS device detected');
+      setShowIOSInstructions(true);
     }
     
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Store the event so it can be triggered later
-      console.log('👋 Before install prompt event fired');
+      console.log('👋 Before install prompt event fired', e);
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
     
@@ -47,13 +58,26 @@ const InstallPWA = () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [isMobile]);
   
   const handleInstallClick = async () => {
+    console.log('Install button clicked, deferredPrompt:', deferredPrompt);
+    
     if (!deferredPrompt) {
-      toast.info("Installation not available. Try opening in your mobile browser.", {
-        description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android, or Safari on iOS."
-      });
+      // Check if the device is iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      
+      if (isIOS) {
+        toast.info("To install on iOS:", {
+          description: "Tap the share button, then 'Add to Home Screen'",
+          duration: 5000
+        });
+      } else {
+        toast.info("Installation not available", {
+          description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android, or Safari on iOS.",
+          duration: 5000
+        });
+      }
       return;
     }
     
@@ -62,24 +86,24 @@ const InstallPWA = () => {
     console.log('🚀 Install prompt shown');
     
     // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`👨‍💻 User choice: ${outcome}`);
-    
-    if (outcome === 'accepted') {
-      toast.success("Thank you for installing our app!");
-      setDeferredPrompt(null);
-    } else {
-      toast.info("App installation was canceled");
+    try {
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`👨‍💻 User choice: ${outcome}`);
+      
+      if (outcome === 'accepted') {
+        toast.success("Thank you for installing our app!");
+        setDeferredPrompt(null);
+      } else {
+        toast.info("App installation was canceled");
+      }
+    } catch (error) {
+      console.error('Error during installation:', error);
+      toast.error("There was a problem with the installation");
     }
   };
   
-  // Only show on mobile and when install is available (not already installed)
+  // Only show on mobile
   if (!isMobile || isAppInstalled) {
-    return null;
-  }
-  
-  // Only show when we have a valid install prompt
-  if (!deferredPrompt) {
     return null;
   }
   
@@ -91,7 +115,7 @@ const InstallPWA = () => {
         className="bg-donation-primary text-white px-4 py-2 rounded-full shadow-lg animate-pulse-soft flex items-center gap-2 w-full max-w-xs"
       >
         <Download className="h-5 w-5" />
-        <span>Install App</span>
+        <span>{showIOSInstructions ? "Add to Home Screen" : "Install App"}</span>
       </Button>
     </div>
   );

@@ -5,8 +5,11 @@
   "description": "Support Nilgiri College's Happiness Club with easy donations",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#4F9D69",
+  "prefer_related_applications": false,
+  "categories": ["donation", "charity", "education"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

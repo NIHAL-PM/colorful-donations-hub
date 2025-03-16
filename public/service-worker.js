@@ -18,6 +18,9 @@ const urlsToCache = [
   '/lovable-uploads/dc5f60a7-e574-4624-9179-84afebf69ff9.png'
 ];
 
+// Log service worker startup
+console.log('Service Worker initializing');
+
 // Install event - cache assets
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
@@ -27,7 +30,13 @@ self.addEventListener('install', (event) => {
         console.log('Service Worker: Caching files');
         return cache.addAll(urlsToCache);
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('Service Worker: Skip waiting');
+        return self.skipWaiting();
+      })
+      .catch(error => {
+        console.error('Service Worker: Install failed:', error);
+      })
   );
 });
 
@@ -43,20 +52,40 @@ self.addEventListener('activate', (event) => {
             console.log('Service Worker: Deleting old cache', cacheName);
             return caches.delete(cacheName);
           }
-        })
+          return null;
+        }).filter(Boolean)
       );
-    }).then(() => self.clients.claim())
+    })
+    .then(() => {
+      console.log('Service Worker: Claiming clients');
+      return self.clients.claim();
+    })
+    .catch(error => {
+      console.error('Service Worker: Activation failed:', error);
+    })
   );
 });
 
 // Fetch event - serve cached content when offline
 self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Skip browser-extension requests and non-http(s) requests
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+  
   console.log('Service Worker: Fetching', event.request.url);
+  
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         // Cache hit - return response
         if (response) {
+          console.log('Service Worker: Using cached version of', event.request.url);
           return response;
         }
         
@@ -86,9 +115,14 @@ self.addEventListener('fetch', (event) => {
             return response;
           })
           .catch((error) => {
-            console.log('Service Worker: Fetch failed; returning offline page instead.', error);
+            console.error('Service Worker: Fetch failed', error);
             // You could return a custom offline page here
+            return caches.match('/');
           });
+      })
+      .catch(error => {
+        console.error('Service Worker: Cache match failed:', error);
+        return fetch(event.request);
       })
   );
 });
@@ -116,4 +150,9 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     clients.openWindow('/')
   );
+});
+
+// Log errors
+self.addEventListener('error', function(event) {
+  console.error('Service Worker error:', event.message, event.filename, event.lineno);
 });
