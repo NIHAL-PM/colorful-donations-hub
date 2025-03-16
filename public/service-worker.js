@@ -1,6 +1,6 @@
 
 // Service Worker for HappyDonation PWA
-const CACHE_NAME = 'happydonation-cache-v1';
+const CACHE_NAME = 'happydonation-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -19,20 +19,20 @@ const urlsToCache = [
 ];
 
 // Log service worker startup
-console.log('Service Worker initializing');
+console.log('Service Worker initializing - Version 2');
 
 // Install event - cache assets
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
+  
+  // Force waiting service worker to become active
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: Caching files');
         return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        console.log('Service Worker: Skip waiting');
-        return self.skipWaiting();
       })
       .catch(error => {
         console.error('Service Worker: Install failed:', error);
@@ -43,6 +43,10 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activating...');
+  
+  // Take control of all clients immediately
+  self.clients.claim();
+  
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -55,10 +59,6 @@ self.addEventListener('activate', (event) => {
           return null;
         }).filter(Boolean)
       );
-    })
-    .then(() => {
-      console.log('Service Worker: Claiming clients');
-      return self.clients.claim();
     })
     .catch(error => {
       console.error('Service Worker: Activation failed:', error);
@@ -127,7 +127,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Handle push notifications (if we add them later)
+// Handle push notifications
 self.addEventListener('push', (event) => {
   console.log('Service Worker: Push received');
   

@@ -7,9 +7,18 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#4F9D69",
+  "theme_color": "#8B5CF6",
   "prefer_related_applications": false,
   "categories": ["donation", "charity", "education"],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "platform": "android",
+      "label": "HappyDonation Home Screen"
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

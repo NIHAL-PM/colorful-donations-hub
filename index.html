@@ -3,11 +3,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>HappyDonation</title>
     <meta name="description" content="Support Nilgiri College's Happiness Club with easy donations" />
     <meta name="author" content="Lovable" />
-    <meta name="theme-color" content="#4F9D69" />
+    <meta name="theme-color" content="#8B5CF6" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
@@ -42,9 +42,13 @@
           try {
             console.log('Attempting to register service worker...');
             const registration = await navigator.serviceWorker.register('/service-worker.js', {
-              scope: '/'
+              scope: '/',
+              updateViaCache: 'none'
             });
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            
+            // Force update the service worker
+            registration.update();
             
             // Check if there's an update available
             registration.addEventListener('updatefound', () => {
@@ -70,6 +74,18 @@
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           console.log('Service Worker controller changed!');
         });
+        
+        // Handle manual registration by exposing a function to trigger it
+        window.registerServiceWorker = async () => {
+          try {
+            const registration = await navigator.serviceWorker.register('/service-worker.js');
+            console.log('Manual ServiceWorker registration successful with scope: ', registration.scope);
+            return registration;
+          } catch (error) {
+            console.error('Manual ServiceWorker registration failed: ', error);
+            return null;
+          }
+        };
       } else {
         console.log('Service workers are not supported in this browser');
       }

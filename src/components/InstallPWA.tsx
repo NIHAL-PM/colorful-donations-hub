@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Download } from 'lucide-react';
+import { Download, Smartphone } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 
@@ -31,6 +31,8 @@ const InstallPWA = () => {
     
     // Check if the device is iOS
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    console.log('Device detection:', { isIOS, isMobile, userAgent: navigator.userAgent });
+    
     if (isIOS && isMobile) {
       console.log('iOS device detected');
       setShowIOSInstructions(true);
@@ -54,6 +56,11 @@ const InstallPWA = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
     
+    // Force show the button for testing on Android
+    if (isMobile && /Android/.test(navigator.userAgent)) {
+      console.log('Android device detected, ensuring install button visibility');
+    }
+    
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
@@ -72,6 +79,11 @@ const InstallPWA = () => {
           description: "Tap the share button, then 'Add to Home Screen'",
           duration: 5000
         });
+      } else if (/Android/.test(navigator.userAgent)) {
+        toast.info("Installation info:", {
+          description: "On Android, look for 'Add to Home Screen' or 'Install' in your browser menu or tap the prompt when it appears.",
+          duration: 5000
+        });
       } else {
         toast.info("Installation not available", {
           description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android, or Safari on iOS.",
@@ -82,11 +94,11 @@ const InstallPWA = () => {
     }
     
     // Show the install prompt
-    deferredPrompt.prompt();
-    console.log('🚀 Install prompt shown');
-    
-    // Wait for the user to respond to the prompt
     try {
+      deferredPrompt.prompt();
+      console.log('🚀 Install prompt shown');
+      
+      // Wait for the user to respond to the prompt
       const { outcome } = await deferredPrompt.userChoice;
       console.log(`👨‍💻 User choice: ${outcome}`);
       
@@ -102,19 +114,23 @@ const InstallPWA = () => {
     }
   };
   
-  // Only show on mobile
+  // If app is already installed or not on mobile, don't show the button
   if (!isMobile || isAppInstalled) {
     return null;
   }
   
   return (
-    <div className="fixed bottom-6 inset-x-0 z-50 flex justify-center px-4">
+    <div className="fixed bottom-16 inset-x-0 z-50 flex justify-center px-4">
       <Button 
         onClick={handleInstallClick}
         size="lg"
-        className="bg-donation-primary text-white px-4 py-2 rounded-full shadow-lg animate-pulse-soft flex items-center gap-2 w-full max-w-xs"
+        className="bg-donation-primary text-white font-bold px-6 py-3 rounded-full shadow-xl animate-bounce flex items-center gap-2 w-full max-w-xs"
       >
-        <Download className="h-5 w-5" />
+        {showIOSInstructions ? (
+          <Smartphone className="h-5 w-5" />
+        ) : (
+          <Download className="h-5 w-5" />
+        )}
         <span>{showIOSInstructions ? "Add to Home Screen" : "Install App"}</span>
       </Button>
     </div>
