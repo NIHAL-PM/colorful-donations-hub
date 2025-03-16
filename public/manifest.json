@@ -6,12 +6,27 @@
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
+  "background_color": "#8B5CF6",
   "theme_color": "#8B5CF6",
   "id": "/",
   "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
   "prefer_related_applications": false,
+  "related_applications": [],
   "categories": ["donation", "charity", "education"],
+  "shortcuts": [
+    {
+      "name": "Donate Now",
+      "url": "/donate",
+      "description": "Make a donation to the Happiness Club"
+    },
+    {
+      "name": "Leaderboard",
+      "url": "/leaderboard",
+      "description": "View top donors"
+    }
+  ],
   "screenshots": [
     {
       "src": "/screenshots/home.png",

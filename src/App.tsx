@@ -40,7 +40,31 @@ const App = () => {
     // Try to force service worker registration if necessary
     if ('serviceWorker' in navigator && window.registerServiceWorker) {
       console.log("Attempting to force service worker registration");
-      window.registerServiceWorker();
+      window.registerServiceWorker()
+        .then(registration => {
+          console.log("Service worker registered from App:", registration);
+          
+          // Check if there's an update available
+          if (registration) {
+            registration.update();
+            console.log("Service worker update check initiated");
+          }
+        })
+        .catch(err => {
+          console.error("Service worker registration failed from App:", err);
+        });
+    }
+    
+    // Directly attempt registration without using the window helper
+    // This is a fallback method
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(registration => {
+          console.log('Direct service worker registration successful:', registration);
+        })
+        .catch(err => {
+          console.error('Direct service worker registration failed:', err);
+        });
     }
   }, []);
 

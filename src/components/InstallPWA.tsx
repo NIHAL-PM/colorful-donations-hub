@@ -1,160 +1,126 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, Smartphone } from 'lucide-react';
+import { Download, Smartphone, Info } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
-
-// Define the BeforeInstallPromptEvent interface
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
+import { usePWAInstall } from '@/hooks/use-pwa-install';
 
 const InstallPWA = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
-  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
-  const [installAvailable, setInstallAvailable] = useState(false);
+  const { isInstallable, isInstalled, isIOS, isAndroid, promptInstall } = usePWAInstall();
+  const [showButton, setShowButton] = useState(false);
   const isMobile = useIsMobile();
   
   useEffect(() => {
-    console.log('InstallPWA component mounted');
+    // For debugging - log installation state
+    console.log('PWA Install Status:', { 
+      isInstallable, 
+      isInstalled, 
+      isIOS, 
+      isAndroid, 
+      isMobile,
+      userAgent: navigator.userAgent
+    });
     
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches || 
-        // Check for iOS standalone mode
-        (window.navigator as any).standalone === true) {
-      console.log('App is already installed in standalone mode');
-      setIsAppInstalled(true);
-      return;
+    // Always show the button on mobile devices, unless already installed
+    if (isMobile && !isInstalled) {
+      setShowButton(true);
     }
     
-    // Check if the device is iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    console.log('Device detection:', { isIOS, isMobile, userAgent: navigator.userAgent });
+    // After page load, wait a few seconds and check again if we should show install prompt
+    const timer = setTimeout(() => {
+      if (isMobile && !isInstalled) {
+        setShowButton(true);
+        
+        // On Android, we might want to show a toast notification to guide users
+        if (isAndroid) {
+          toast.info("Install our app for a better experience!", {
+            duration: 10000,
+            action: {
+              label: "Install",
+              onClick: handleInstallClick
+            }
+          });
+        }
+      }
+    }, 5000);
     
-    if (isIOS && isMobile) {
-      console.log('iOS device detected');
-      setShowIOSInstructions(true);
-      setInstallAvailable(true); // iOS can always "install" via Add to Home Screen
-    }
-    
-    // On Android devices, always show the install button initially
-    // The actual install capability will be determined by the beforeinstallprompt event
-    if (/Android/.test(navigator.userAgent) && isMobile) {
-      console.log('Android device detected, showing install button');
-      setInstallAvailable(true);
-    }
-    
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent Chrome 67 and earlier from automatically showing the prompt
-      e.preventDefault();
-      // Store the event so it can be triggered later
-      console.log('👋 Before install prompt event fired', e);
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setInstallAvailable(true);
-    };
-    
-    const handleAppInstalled = () => {
-      console.log('🎉 App was installed');
-      setIsAppInstalled(true);
-      setDeferredPrompt(null);
-      setInstallAvailable(false);
-      toast.success("App successfully installed!");
-    };
-    
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-    
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, [isMobile]);
+    return () => clearTimeout(timer);
+  }, [isInstallable, isInstalled, isIOS, isAndroid, isMobile]);
   
   const handleInstallClick = async () => {
-    console.log('Install button clicked, deferredPrompt:', deferredPrompt);
+    console.log('Install button clicked');
+    const result = await promptInstall();
     
-    if (!deferredPrompt) {
-      // Check if the device is iOS
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-      
-      if (isIOS) {
-        toast.info("To install on iOS:", {
-          description: "Tap the share button, then 'Add to Home Screen'",
-          duration: 5000
-        });
-      } else if (/Android/.test(navigator.userAgent)) {
-        toast.info("Installation info:", {
-          description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android. If you don't see an install prompt, your browser might not support PWA installation.",
-          duration: 5000
+    console.log('Install prompt result:', result);
+    
+    if (result === 'not_available') {
+      // If we're on Android and installation prompt is not available,
+      // show detailed instructions
+      if (isAndroid) {
+        toast.info("Installation requirements for Android", {
+          description: "Make sure you're using Chrome, Firefox, Edge or Samsung Internet. Visit the site a few times over several days for the install prompt to appear.",
+          duration: 10000
         });
         
-        // Try to manually register service worker again
+        // Attempt to register service worker again
         if ('serviceWorker' in navigator && window.registerServiceWorker) {
           try {
-            await window.registerServiceWorker();
-            toast.info("Service worker registered. Please reload the page and try again.");
+            const reg = await window.registerServiceWorker();
+            console.log('Service worker registration attempt:', reg);
+            toast.info("Preparing installation...", {
+              description: "Please refresh the page and try again in a few moments.",
+              duration: 5000
+            });
           } catch (error) {
             console.error('Failed to register service worker:', error);
           }
         }
-      } else {
-        toast.info("Installation not available", {
-          description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android, or Safari on iOS.",
-          duration: 5000
-        });
       }
-      return;
-    }
-    
-    // Show the install prompt
-    try {
-      deferredPrompt.prompt();
-      console.log('🚀 Install prompt shown');
-      
-      // Wait for the user to respond to the prompt
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`👨‍💻 User choice: ${outcome}`);
-      
-      if (outcome === 'accepted') {
-        toast.success("Thank you for installing our app!");
-        setDeferredPrompt(null);
-      } else {
-        toast.info("App installation was canceled");
-      }
-    } catch (error) {
-      console.error('Error during installation:', error);
-      toast.error("There was a problem with the installation");
     }
   };
   
   // If app is already installed, don't show the button
-  if (isAppInstalled) {
+  if (isInstalled || !showButton) {
     return null;
   }
   
-  // Always show the button on mobile, even if deferredPrompt isn't available yet
-  if (!isMobile) {
-    return null;
-  }
+  // Determine the button text based on the platform
+  const buttonText = isIOS ? "Add to Home Screen" : "Install App";
+  const buttonIcon = isIOS ? <Smartphone className="h-5 w-5" /> : <Download className="h-5 w-5" />;
   
   return (
-    <div className="fixed bottom-16 inset-x-0 z-50 flex justify-center px-4">
-      <Button 
-        onClick={handleInstallClick}
-        size="lg"
-        className="bg-donation-primary text-white font-bold px-6 py-3 rounded-full shadow-xl animate-bounce flex items-center gap-2 w-full max-w-xs"
-      >
-        {showIOSInstructions ? (
-          <Smartphone className="h-5 w-5" />
-        ) : (
-          <Download className="h-5 w-5" />
-        )}
-        <span>{showIOSInstructions ? "Add to Home Screen" : "Install App"}</span>
-      </Button>
-    </div>
+    <>
+      {/* Floating Install Button */}
+      <div className="fixed bottom-16 inset-x-0 z-50 flex justify-center px-4">
+        <Button 
+          onClick={handleInstallClick}
+          size="lg"
+          className="bg-donation-primary hover:bg-donation-primary/90 text-white font-bold px-6 py-4 rounded-full shadow-xl animate-bounce flex items-center gap-2 w-full max-w-xs"
+        >
+          {buttonIcon}
+          <span>{buttonText}</span>
+        </Button>
+      </div>
+      
+      {/* Top Banner for Android Devices */}
+      {isAndroid && (
+        <div className="fixed top-16 inset-x-0 z-50 bg-donation-primary/90 text-white py-2 px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4" />
+            <span className="text-sm">Install our app for a better experience!</span>
+          </div>
+          <Button 
+            onClick={handleInstallClick}
+            size="sm" 
+            variant="outline"
+            className="bg-white text-donation-primary border-white hover:bg-white/90 text-xs"
+          >
+            Install
+          </Button>
+        </div>
+      )}
+    </>
   );
 };
 

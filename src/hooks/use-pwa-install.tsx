@@ -22,6 +22,9 @@ export function usePWAInstall(): PWAInstallHook {
   const [isAndroid, setIsAndroid] = useState(false);
   
   useEffect(() => {
+    // Debug message
+    console.log('🔍 PWA Hook initialized');
+    
     // Check if app is already installed
     const checkInstallStatus = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
@@ -39,9 +42,9 @@ export function usePWAInstall(): PWAInstallHook {
     if (checkInstallStatus()) return;
     
     // Check device platform
-    const userAgent = navigator.userAgent;
-    const iosDevice = /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
-    const androidDevice = /Android/i.test(userAgent);
+    const userAgent = navigator.userAgent.toLowerCase();
+    const iosDevice = /ipad|iphone|ipod/.test(userAgent) && !(window as any).MSStream;
+    const androidDevice = /android/.test(userAgent);
     
     setIsIOS(iosDevice);
     setIsAndroid(androidDevice);
@@ -52,7 +55,7 @@ export function usePWAInstall(): PWAInstallHook {
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Store the event so it can be triggered later
-      console.log('💾 Before install prompt event captured in hook');
+      console.log('💾 Before install prompt event captured in hook', e);
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
     
@@ -78,9 +81,15 @@ export function usePWAInstall(): PWAInstallHook {
     mediaQuery.addEventListener('change', handleDisplayModeChange);
     
     // Try to force register service worker if not already controlling the page
-    if ('serviceWorker' in navigator && !navigator.serviceWorker.controller && window.registerServiceWorker) {
+    if ('serviceWorker' in navigator && window.registerServiceWorker) {
       console.log('Attempting to force service worker registration from hook');
-      window.registerServiceWorker();
+      window.registerServiceWorker()
+        .then(reg => {
+          console.log('Service worker registered from hook:', reg);
+        })
+        .catch(err => {
+          console.error('Service worker registration failed from hook:', err);
+        });
     }
     
     return () => {
@@ -100,16 +109,26 @@ export function usePWAInstall(): PWAInstallHook {
           duration: 5000
         });
       } else if (isAndroid) {
-        toast.info("Installation info:", {
-          description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android.",
+        toast.info("Installation note:", {
+          description: "Make sure you've visited the site at least twice and spent a few minutes browsing.",
           duration: 5000
         });
         
         // Try to manually register service worker again on Android
         if ('serviceWorker' in navigator && window.registerServiceWorker) {
           try {
-            await window.registerServiceWorker();
-            console.log('Service worker registered during install attempt');
+            const reg = await window.registerServiceWorker();
+            console.log('Service worker registered during install attempt:', reg);
+            
+            // Wait a moment and check if the beforeinstallprompt event fires
+            setTimeout(() => {
+              if (!deferredPrompt) {
+                toast.info("Try refreshing the page", {
+                  description: "If installation doesn't appear, please refresh and try again.",
+                  duration: 5000
+                });
+              }
+            }, 3000);
           } catch (error) {
             console.error('Failed to register service worker during install attempt:', error);
           }
@@ -143,7 +162,7 @@ export function usePWAInstall(): PWAInstallHook {
   };
   
   return {
-    isInstallable: !!deferredPrompt || isIOS, // iOS can always "install" via Add to Home Screen
+    isInstallable: !!deferredPrompt || (isAndroid && !isInstalled), // Consider Android always potentially installable
     isInstalled,
     isIOS,
     isAndroid,
