@@ -15,6 +15,7 @@ const InstallPWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const [installAvailable, setInstallAvailable] = useState(false);
   const isMobile = useIsMobile();
   
   useEffect(() => {
@@ -36,6 +37,14 @@ const InstallPWA = () => {
     if (isIOS && isMobile) {
       console.log('iOS device detected');
       setShowIOSInstructions(true);
+      setInstallAvailable(true); // iOS can always "install" via Add to Home Screen
+    }
+    
+    // On Android devices, always show the install button initially
+    // The actual install capability will be determined by the beforeinstallprompt event
+    if (/Android/.test(navigator.userAgent) && isMobile) {
+      console.log('Android device detected, showing install button');
+      setInstallAvailable(true);
     }
     
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -44,22 +53,19 @@ const InstallPWA = () => {
       // Store the event so it can be triggered later
       console.log('👋 Before install prompt event fired', e);
       setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setInstallAvailable(true);
     };
     
     const handleAppInstalled = () => {
       console.log('🎉 App was installed');
       setIsAppInstalled(true);
       setDeferredPrompt(null);
+      setInstallAvailable(false);
       toast.success("App successfully installed!");
     };
     
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-    
-    // Force show the button for testing on Android
-    if (isMobile && /Android/.test(navigator.userAgent)) {
-      console.log('Android device detected, ensuring install button visibility');
-    }
     
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -81,9 +87,19 @@ const InstallPWA = () => {
         });
       } else if (/Android/.test(navigator.userAgent)) {
         toast.info("Installation info:", {
-          description: "On Android, look for 'Add to Home Screen' or 'Install' in your browser menu or tap the prompt when it appears.",
+          description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android. If you don't see an install prompt, your browser might not support PWA installation.",
           duration: 5000
         });
+        
+        // Try to manually register service worker again
+        if ('serviceWorker' in navigator && window.registerServiceWorker) {
+          try {
+            await window.registerServiceWorker();
+            toast.info("Service worker registered. Please reload the page and try again.");
+          } catch (error) {
+            console.error('Failed to register service worker:', error);
+          }
+        }
       } else {
         toast.info("Installation not available", {
           description: "Make sure you're using Chrome, Edge, or Samsung Internet on Android, or Safari on iOS.",
@@ -114,8 +130,13 @@ const InstallPWA = () => {
     }
   };
   
-  // If app is already installed or not on mobile, don't show the button
-  if (!isMobile || isAppInstalled) {
+  // If app is already installed, don't show the button
+  if (isAppInstalled) {
+    return null;
+  }
+  
+  // Always show the button on mobile, even if deferredPrompt isn't available yet
+  if (!isMobile) {
     return null;
   }
   

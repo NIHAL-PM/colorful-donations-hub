@@ -1,6 +1,6 @@
 
 // Service Worker for HappyDonation PWA
-const CACHE_NAME = 'happydonation-cache-v2';
+const CACHE_NAME = 'happydonation-cache-v3';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -19,7 +19,7 @@ const urlsToCache = [
 ];
 
 // Log service worker startup
-console.log('Service Worker initializing - Version 2');
+console.log('Service Worker initializing - Version 3');
 
 // Install event - cache assets
 self.addEventListener('install', (event) => {
@@ -45,26 +45,47 @@ self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activating...');
   
   // Take control of all clients immediately
-  self.clients.claim();
-  
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log('Service Worker: Deleting old cache', cacheName);
-            return caches.delete(cacheName);
-          }
-          return null;
-        }).filter(Boolean)
-      );
-    })
-    .catch(error => {
+    Promise.all([
+      self.clients.claim(),
+      // Clean up old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Service Worker: Deleting old cache', cacheName);
+              return caches.delete(cacheName);
+            }
+            return Promise.resolve();
+          })
+        );
+      })
+    ]).catch(error => {
       console.error('Service Worker: Activation failed:', error);
     })
   );
+  
+  // Notify all clients that the service worker has been updated
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({ type: 'SW_UPDATED' });
+    });
+  });
 });
+
+// Helper function to determine if a request should be cached
+const shouldCache = (url) => {
+  // Don't cache API calls
+  if (url.includes('/api/')) return false;
+  
+  // Don't cache external URLs
+  if (!url.startsWith(self.location.origin)) return false;
+  
+  // Don't cache query parameters for dynamic content
+  if (url.includes('?')) return false;
+  
+  return true;
+};
 
 // Fetch event - serve cached content when offline
 self.addEventListener('fetch', (event) => {
@@ -102,22 +123,33 @@ self.addEventListener('fetch', (event) => {
             // Clone the response because it's a one-time use stream
             const responseToCache = response.clone();
 
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                console.log('Service Worker: Caching new resource', event.request.url);
-                // Don't cache API calls or external resources
-                if (!event.request.url.includes('/api/') && 
-                    event.request.url.startsWith(self.location.origin)) {
+            if (shouldCache(event.request.url)) {
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  console.log('Service Worker: Caching new resource', event.request.url);
                   cache.put(event.request, responseToCache);
-                }
-              });
+                })
+                .catch(error => {
+                  console.error('Service Worker: Cache put failed:', error);
+                });
+            }
 
             return response;
           })
           .catch((error) => {
             console.error('Service Worker: Fetch failed', error);
-            // You could return a custom offline page here
-            return caches.match('/');
+            
+            // Try to return the index page for navigation requests when offline
+            if (event.request.mode === 'navigate') {
+              return caches.match('/');
+            }
+            
+            return new Response('Network error occurred', {
+              status: 408,
+              headers: new Headers({
+                'Content-Type': 'text/plain'
+              })
+            });
           });
       })
       .catch(error => {
@@ -150,6 +182,15 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     clients.openWindow('/')
   );
+});
+
+// Handle messages from clients
+self.addEventListener('message', (event) => {
+  console.log('Service Worker: Message received', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Log errors

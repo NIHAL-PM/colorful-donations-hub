@@ -1,6 +1,6 @@
 
 {
-  "name": "HappyDonation",
+  "name": "HappyDonation - Support Happiness Club",
   "short_name": "HappyDonation",
   "description": "Support Nilgiri College's Happiness Club with easy donations",
   "start_url": "/",
@@ -8,6 +8,8 @@
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#8B5CF6",
+  "id": "/",
+  "scope": "/",
   "prefer_related_applications": false,
   "categories": ["donation", "charity", "education"],
   "screenshots": [

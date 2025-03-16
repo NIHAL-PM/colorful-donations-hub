@@ -16,6 +16,13 @@ import { LeaderboardProvider } from "./hooks/useLeaderboard";
 import InstallPWA from "./components/InstallPWA";
 import { useEffect } from "react";
 
+// Declare the global window property for the registerServiceWorker function
+declare global {
+  interface Window {
+    registerServiceWorker?: () => Promise<ServiceWorkerRegistration | null>;
+  }
+}
+
 const queryClient = new QueryClient();
 
 const App = () => {
