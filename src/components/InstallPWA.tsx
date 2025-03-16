@@ -5,10 +5,11 @@ import { Download } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 
-type BeforeInstallPromptEvent = Event & {
+// Define the BeforeInstallPromptEvent interface
+interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-};
+}
 
 const InstallPWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -18,8 +19,8 @@ const InstallPWA = () => {
   useEffect(() => {
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches || 
-        // Check for iOS standalone mode in a type-safe way
-        (navigator as any).standalone === true) {
+        // Check for iOS standalone mode
+        (window.navigator as any).standalone === true) {
       setIsAppInstalled(true);
       return;
     }
@@ -28,10 +29,12 @@ const InstallPWA = () => {
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Store the event so it can be triggered later
+      console.log('👋 Before install prompt event fired');
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
     
     const handleAppInstalled = () => {
+      console.log('🎉 App was installed');
       setIsAppInstalled(true);
       setDeferredPrompt(null);
       toast.success("App successfully installed!");
@@ -56,9 +59,11 @@ const InstallPWA = () => {
     
     // Show the install prompt
     deferredPrompt.prompt();
+    console.log('🚀 Install prompt shown');
     
     // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
+    console.log(`👨‍💻 User choice: ${outcome}`);
     
     if (outcome === 'accepted') {
       toast.success("Thank you for installing our app!");
@@ -68,8 +73,13 @@ const InstallPWA = () => {
     }
   };
   
-  // Only show on mobile and when install is available
+  // Only show on mobile and when install is available (not already installed)
   if (!isMobile || isAppInstalled) {
+    return null;
+  }
+  
+  // Only show when we have a valid install prompt
+  if (!deferredPrompt) {
     return null;
   }
   

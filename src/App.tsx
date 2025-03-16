@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DonationsProvider } from "./hooks/useDonations";
 import { LeaderboardProvider } from "./hooks/useLeaderboard";
+import InstallPWA from "./components/InstallPWA";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <InstallPWA />
             </BrowserRouter>
           </LeaderboardProvider>
         </DonationsProvider>
