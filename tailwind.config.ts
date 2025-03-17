@@ -53,12 +53,22 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				sidebar: {
+					DEFAULT: 'hsl(var(--sidebar-background))',
+					foreground: 'hsl(var(--sidebar-foreground))',
+					primary: 'hsl(var(--sidebar-primary))',
+					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+					accent: 'hsl(var(--sidebar-accent))',
+					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+					border: 'hsl(var(--sidebar-border))',
+					ring: 'hsl(var(--sidebar-ring))'
+				},
 				donation: {
-					primary: '#8B5CF6', // Purple primary
-					secondary: '#D946EF', // Magenta secondary
-					accent: '#F472B6', // Pink accent
-					light: '#F5F3FF', // Light background
-					dark: '#1F2937'  // Dark text
+					primary: '#4F9D69', // Green primary color
+					secondary: '#8FCFD1', // Soft teal
+					accent: '#F2D0A4', // Warm accent
+					light: '#F9F3DF', // Light background
+					dark: '#403E43'  // Dark text
 				}
 			},
 			borderRadius: {
@@ -132,20 +142,20 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-				'gradient-primary': 'linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
-				'gradient-secondary': 'linear-gradient(108deg, hsl(var(--accent)) 10%, hsl(var(--primary)) 90%)',
-				'gradient-accent': 'linear-gradient(90deg, hsl(var(--secondary)) 0%, hsl(var(--accent)) 100%)',
-				'gradient-leaderboard': 'linear-gradient(90deg, #f5f3ff 0%, #ede9fe 100%)',
-				'gradient-admin': 'linear-gradient(90deg, #c4b5fd 0%, #ddd6fe 100%)',
-				'gradient-payment': 'linear-gradient(90deg, #c084fc 0%, #a855f7 100%)'
+				'gradient-primary': 'linear-gradient(90deg, #4F9D69 0%, #8FCFD1 100%)',
+				'gradient-secondary': 'linear-gradient(108deg, #F2D0A4 10%, #F9F3DF 90%)',
+				'gradient-accent': 'linear-gradient(90deg, #F9F3DF 0%, #8FCFD1 100%)',
+				'gradient-leaderboard': 'linear-gradient(90deg, #e6e9f0 0%, #eef1f5 100%)',
+				'gradient-admin': 'linear-gradient(90deg, #F2D0A4 0%, #F9F3DF 100%)',
+				'gradient-payment': 'linear-gradient(90deg, #F2D0A4 0%, #4F9D69 100%)'
 			},
 			backdropFilter: {
 				'none': 'none',
 				'blur': 'blur(8px)'
 			},
 			fontFamily: {
-				sans: ['Outfit', 'sans-serif'],
-				display: ['Poppins', 'sans-serif']
+				sans: ['Inter', 'sans-serif'],
+				display: ['SF Pro Display', 'Inter', 'sans-serif']
 			},
 			boxShadow: {
 				'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',

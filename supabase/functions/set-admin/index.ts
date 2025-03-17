@@ -33,18 +33,10 @@ serve(async (req) => {
     }
 
     // Create a Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      })
-    }
-
-    const supabaseClient = createClient(supabaseUrl, supabaseKey)
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
     // Call the function to set the admin role
     const { data, error } = await supabaseClient.rpc('set_initial_admin', { admin_email: email })
@@ -57,35 +49,13 @@ serve(async (req) => {
       })
     }
 
-    // Verify that the update was successful by checking the user in profiles
-    const { data: profileData, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('is_admin')
-      .eq('email', email)
-      .single()
-
-    if (profileError) {
-      console.error('Error verifying admin status:', profileError)
-      return new Response(JSON.stringify({ warning: 'Admin set but verification failed', error: profileError.message }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200, // Still return 200 since the function call succeeded
-      })
-    }
-
-    if (!profileData || profileData.is_admin !== true) {
-      return new Response(JSON.stringify({ warning: 'User may not exist or admin status not updated' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
-    }
-
     return new Response(JSON.stringify({ success: true, message: `User ${email} is now an admin` }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error) {
     console.error('Server error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     })

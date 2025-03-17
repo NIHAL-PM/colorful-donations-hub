@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Heart, ArrowRight, CreditCard } from 'lucide-react';
 import PaymentMethods from './PaymentMethods';
 import { useDonations } from '@/hooks/useDonations';
@@ -14,26 +13,12 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const presetAmounts = [500, 1000, 2000, 5000, 10000];
 
-const departments = [
-  { value: "BCA", label: "BCA" },
-  { value: "BSC_CS", label: "BSc CS" },
-  { value: "PSYCHOLOGY", label: "Psychology" },
-  { value: "MULTIMEDIA", label: "Multimedia" },
-  { value: "BCOM_PA", label: "BCom PA" },
-  { value: "BCOM_CA", label: "BCom CA" },
-  { value: "MSC_CS", label: "MSc CS" },
-  { value: "MSC_PSYCHOLOGY", label: "MSc Psychology" },
-  { value: "MCA", label: "MCA" },
-  { value: "BBA", label: "BBA" },
-];
-
 const DonationForm: React.FC = () => {
   const [amount, setAmount] = useState(1000);
   const [customAmount, setCustomAmount] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-  const [department, setDepartment] = useState('');
   const [showPayment, setShowPayment] = useState(false);
   const [step, setStep] = useState(1);
   const { addDonation } = useDonations();
@@ -77,10 +62,10 @@ const DonationForm: React.FC = () => {
       return;
     }
     
-    if (!name || !email || !email.includes('@') || !department) {
+    if (!name || !email || !email.includes('@')) {
       toast({
         title: "Missing information",
-        description: "Please provide your name, a valid email address, and select your department",
+        description: "Please provide your name and a valid email address",
         variant: "destructive",
       });
       return;
@@ -97,7 +82,6 @@ const DonationForm: React.FC = () => {
       method,
       date: new Date().toISOString(),
       message: message,
-      department: department,
     });
     
     setStep(3);
@@ -209,17 +193,6 @@ const DonationForm: React.FC = () => {
               className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
             />
 
-            <Select value={department} onValueChange={(value) => setDepartment(value)}>
-              <SelectTrigger className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40">
-                <SelectValue placeholder="Select your department" />
-              </SelectTrigger>
-              <SelectContent>
-                {departments.map((dept) => (
-                  <SelectItem key={dept.value} value={dept.value}>{dept.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             <Input
               placeholder="Optional message (why you're donating)"
               value={message}
@@ -240,7 +213,7 @@ const DonationForm: React.FC = () => {
               background: 'linear-gradient(90deg, #4F9D69 0%, #8FCFD1 100%)',
               boxShadow: '0 10px 15px -3px rgba(79, 157, 105, 0.2), 0 4px 6px -2px rgba(79, 157, 105, 0.1)'
             }}
-            disabled={amount <= 0 || !name || !email || !department}
+            disabled={amount <= 0 || !name || !email}
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer -translate-x-full group-hover:translate-x-full transition-all duration-1000"></div>
             <div className="flex items-center justify-center gap-2">

@@ -1,4 +1,6 @@
 
+import { toast } from '@/components/ui/use-toast';
+
 // Types for Razorpay
 declare global {
   interface Window {
@@ -23,6 +25,7 @@ export interface RazorpayOptions {
   theme?: {
     color?: string;
   };
+  // Adding the handler property to the interface
   handler?: (response: RazorpaySuccessResponse) => void;
 }
 
@@ -44,7 +47,6 @@ const loadRazorpayScript = (): Promise<boolean> => {
     script.async = true;
     script.onload = () => resolve(true);
     script.onerror = () => {
-      console.error("Failed to load Razorpay script");
       toast({
         title: 'Payment Gateway Error',
         description: 'Failed to load payment gateway. Please try again later.',
@@ -62,59 +64,40 @@ export const initiateRazorpayPayment = async (
   onSuccess: (response: RazorpaySuccessResponse) => void,
   onError: (error: any) => void
 ): Promise<void> => {
+  const scriptLoaded = await loadRazorpayScript();
+  
+  if (!scriptLoaded) {
+    onError(new Error('Failed to load Razorpay SDK'));
+    return;
+  }
+
   try {
-    const scriptLoaded = await loadRazorpayScript();
-    
-    if (!scriptLoaded) {
-      console.error("Razorpay script failed to load");
-      onError(new Error('Failed to load Razorpay SDK'));
-      return;
-    }
-
-    console.log("Razorpay script loaded successfully");
-
     // Set default Razorpay key for development
     // In production, you should get this from an environment variable or server
     const defaultKey = 'rzp_test_bUcvzDQD7fGITt';
-    
-    // Convert amount to paise (smallest currency unit in India)
-    const amountInPaise = Math.round(options.amount * 100);
-    
-    console.log("Preparing Razorpay payment with amount:", options.amount, "converted to paise:", amountInPaise);
-    
     const razorpayOptions: RazorpayOptions = {
       ...options,
       key: options.key || defaultKey,
-      amount: amountInPaise, // Ensure it's in paise
+      // Convert amount to paise (smallest currency unit)
+      amount: options.amount * 100,
       currency: options.currency || 'INR',
       name: options.name || 'Happy Donation',
       description: options.description || 'Donation to Happiness Club',
       theme: {
-        color: '#8B5CF6', // Updated to match our new purple primary color
+        color: '#4F9D69',
         ...options.theme,
       },
       handler: function (response: RazorpaySuccessResponse) {
-        console.log("Razorpay payment successful:", response);
         onSuccess(response);
       },
     };
 
-    console.log("Opening Razorpay payment form with options:", razorpayOptions);
-    
     const razorpay = new window.Razorpay(razorpayOptions);
-    razorpay.on('payment.failed', function (response: any) {
-      console.error("Razorpay payment failed:", response.error);
-      onError(response.error);
-    });
     razorpay.open();
   } catch (error) {
-    console.error("Error initiating Razorpay payment:", error);
     onError(error);
   }
 };
-
-// Import toast
-import { toast } from '@/components/ui/use-toast';
 
 // Function to verify Razorpay payment - this would typically be done on your server
 export const verifyRazorpayPayment = async (

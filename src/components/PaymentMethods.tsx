@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Smartphone, Wallet, CheckCircle2, AlertCircle, Coffee } from 'lucide-react';
 import { initiateRazorpayPayment, generateReceiptId } from '@/services/razorpay';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 
 interface PaymentMethodsProps {
   onPaymentComplete: (amount: number, method: string) => void;
@@ -24,7 +23,7 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
   const [cardCvv, setCardCvv] = useState('');
   const [upiId, setUpiId] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState('card');
   const [paymentError, setPaymentError] = useState('');
 
   const formatCardNumber = (value: string) => {
@@ -51,7 +50,6 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
     
     try {
       if (paymentMethod === 'razorpay') {
-        console.log("Starting Razorpay payment for amount:", amount);
         initiateRazorpayPayment(
           {
             key: 'rzp_test_bUcvzDQD7fGITt',
@@ -73,7 +71,8 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
           },
           (response) => {
             console.log('Razorpay payment successful:', response);
-            toast.success('Payment Successful', {
+            toast({
+              title: 'Payment Successful',
               description: `Payment ID: ${response.razorpay_payment_id}`,
             });
             onPaymentComplete(amount, 'razorpay');
@@ -83,13 +82,9 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
             console.error('Razorpay payment failed:', error);
             setPaymentError('Payment failed. Please try again or use a different payment method.');
             setProcessing(false);
-            toast.error('Payment Failed', {
-              description: error.message || 'Please try again or use a different payment method.',
-            });
           }
         );
       } else {
-        // Simulate other payment methods
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         const randomSuccess = Math.random() > 0.2;
@@ -98,18 +93,12 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
           onPaymentComplete(amount, paymentMethod);
         } else {
           setPaymentError('Payment failed. Please try again or use a different payment method.');
-          toast.error('Payment Failed', {
-            description: 'Please try again or use a different payment method.',
-          });
         }
         setProcessing(false);
       }
     } catch (error) {
-      console.error('Payment error:', error);
       setPaymentError('An unexpected error occurred. Please try again.');
-      toast.error('Payment Error', {
-        description: 'An unexpected error occurred. Please try again.',
-      });
+      console.error('Payment failed:', error);
       setProcessing(false);
     }
   };
