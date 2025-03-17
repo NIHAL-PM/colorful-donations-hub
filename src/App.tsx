@@ -37,34 +37,42 @@ const App = () => {
       console.log('App is running in browser mode - can be installed');
     }
     
-    // Try to force service worker registration if necessary
-    if ('serviceWorker' in navigator && window.registerServiceWorker) {
-      console.log("Attempting to force service worker registration");
-      window.registerServiceWorker()
-        .then(registration => {
-          console.log("Service worker registered from App:", registration);
-          
-          // Check if there's an update available
-          if (registration) {
-            registration.update();
-            console.log("Service worker update check initiated");
-          }
-        })
-        .catch(err => {
-          console.error("Service worker registration failed from App:", err);
-        });
-    }
-    
-    // Directly attempt registration without using the window helper
-    // This is a fallback method
+    // Attempt to register service worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(registration => {
-          console.log('Direct service worker registration successful:', registration);
-        })
-        .catch(err => {
-          console.error('Direct service worker registration failed:', err);
-        });
+      // First try using the window helper function
+      if (window.registerServiceWorker) {
+        console.log("Attempting to register service worker via helper");
+        window.registerServiceWorker()
+          .then(registration => {
+            console.log("Service worker registered from App:", registration);
+            
+            // Check if there's an update available
+            if (registration) {
+              registration.update();
+            }
+          })
+          .catch(err => {
+            console.error("Service worker registration failed from App:", err);
+            
+            // If helper fails, try direct registration as fallback
+            navigator.serviceWorker.register('/service-worker.js')
+              .then(registration => {
+                console.log('Direct service worker registration successful:', registration);
+              })
+              .catch(err => {
+                console.error('All service worker registration attempts failed:', err);
+              });
+          });
+      } else {
+        // Direct registration if helper doesn't exist
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('Direct service worker registration successful:', registration);
+          })
+          .catch(err => {
+            console.error('Direct service worker registration failed:', err);
+          });
+      }
     }
   }, []);
 
@@ -83,7 +91,6 @@ const App = () => {
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/admin" element={<Admin />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <InstallPWA />

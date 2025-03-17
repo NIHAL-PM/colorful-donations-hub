@@ -49,7 +49,12 @@ export function usePWAInstall(): PWAInstallHook {
     setIsIOS(iosDevice);
     setIsAndroid(androidDevice);
     
-    console.log('📱 Device detection in hook:', { iosDevice, androidDevice, userAgent });
+    console.log('📱 Device detection in hook:', { 
+      iosDevice, 
+      androidDevice, 
+      userAgent,
+      navigator: navigator.userAgent 
+    });
     
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent Chrome 67 and earlier from automatically showing the prompt
@@ -106,33 +111,28 @@ export function usePWAInstall(): PWAInstallHook {
       if (isIOS) {
         toast.info("To install on iOS:", {
           description: "Tap the share button, then 'Add to Home Screen'",
-          duration: 5000
+          duration: 8000
         });
       } else if (isAndroid) {
-        toast.info("Installation note:", {
-          description: "Make sure you've visited the site at least twice and spent a few minutes browsing.",
-          duration: 5000
+        toast.info("To install on Android:", {
+          description: "Tap the menu (⋮) and select 'Add to Home screen' or 'Install app'",
+          duration: 8000
         });
         
         // Try to manually register service worker again on Android
-        if ('serviceWorker' in navigator && window.registerServiceWorker) {
+        if ('serviceWorker' in navigator) {
           try {
-            const reg = await window.registerServiceWorker();
+            const reg = await navigator.serviceWorker.register('/service-worker.js');
             console.log('Service worker registered during install attempt:', reg);
-            
-            // Wait a moment and check if the beforeinstallprompt event fires
-            setTimeout(() => {
-              if (!deferredPrompt) {
-                toast.info("Try refreshing the page", {
-                  description: "If installation doesn't appear, please refresh and try again.",
-                  duration: 5000
-                });
-              }
-            }, 3000);
           } catch (error) {
             console.error('Failed to register service worker during install attempt:', error);
           }
         }
+      } else {
+        toast.info("To install this app:", {
+          description: "Use Chrome, Edge or Samsung Internet on Android, or Safari on iOS",
+          duration: 8000
+        });
       }
       return 'not_available';
     }
@@ -156,13 +156,13 @@ export function usePWAInstall(): PWAInstallHook {
       return outcome;
     } catch (error) {
       console.error('Error during installation prompt:', error);
-      toast.error("There was a problem with the installation");
+      toast.error("There was a problem with the installation. Please try again.");
       return 'not_available';
     }
   };
   
   return {
-    isInstallable: !!deferredPrompt || (isAndroid && !isInstalled), // Consider Android always potentially installable
+    isInstallable: !!deferredPrompt || isAndroid || isIOS, // Consider mobile devices always potentially installable
     isInstalled,
     isIOS,
     isAndroid,
