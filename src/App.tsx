@@ -9,73 +9,15 @@ import Donate from "./pages/Donate";
 import Leaderboard from "./pages/Leaderboard";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
+import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DonationsProvider } from "./hooks/useDonations";
 import { LeaderboardProvider } from "./hooks/useLeaderboard";
-import InstallPWA from "./components/InstallPWA";
-import { useEffect } from "react";
-
-// Declare the global window property for the registerServiceWorker function
-declare global {
-  interface Window {
-    registerServiceWorker?: () => Promise<ServiceWorkerRegistration | null>;
-  }
-}
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  useEffect(() => {
-    // Force PWA-related logs to help with debugging
-    console.log("App mounted - PWA install check");
-    
-    // Check if running in standalone mode (installed PWA)
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('App is running in standalone/installed mode');
-    } else {
-      console.log('App is running in browser mode - can be installed');
-    }
-    
-    // Attempt to register service worker
-    if ('serviceWorker' in navigator) {
-      // First try using the window helper function
-      if (window.registerServiceWorker) {
-        console.log("Attempting to register service worker via helper");
-        window.registerServiceWorker()
-          .then(registration => {
-            console.log("Service worker registered from App:", registration);
-            
-            // Check if there's an update available
-            if (registration) {
-              registration.update();
-            }
-          })
-          .catch(err => {
-            console.error("Service worker registration failed from App:", err);
-            
-            // If helper fails, try direct registration as fallback
-            navigator.serviceWorker.register('/service-worker.js')
-              .then(registration => {
-                console.log('Direct service worker registration successful:', registration);
-              })
-              .catch(err => {
-                console.error('All service worker registration attempts failed:', err);
-              });
-          });
-      } else {
-        // Direct registration if helper doesn't exist
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(registration => {
-            console.log('Direct service worker registration successful:', registration);
-          })
-          .catch(err => {
-            console.error('Direct service worker registration failed:', err);
-          });
-      }
-    }
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -91,9 +33,9 @@ const App = () => {
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/blog" element={<Blog />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-                <InstallPWA />
               </BrowserRouter>
             </LeaderboardProvider>
           </DonationsProvider>

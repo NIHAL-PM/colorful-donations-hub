@@ -12,6 +12,7 @@ interface Donation {
   date: string;
   message?: string;
   user_id?: string;
+  department?: string;
 }
 
 interface DonationsContextType {
@@ -50,7 +51,8 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           method: donation.method,
           date: donation.date,
           message: donation.message,
-          user_id: donation.user_id
+          user_id: donation.user_id,
+          department: donation.department
         })));
       }
     } catch (err) {
@@ -103,6 +105,7 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             method: donation.method,
             user_id: user_id || null,
             message: donation.message || null,
+            department: donation.department || null,
             // date is set by default in the database
           }
         ])
