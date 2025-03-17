@@ -25,8 +25,6 @@ export interface RazorpayOptions {
   theme?: {
     color?: string;
   };
-  // Adding the handler property to the interface
-  handler?: (response: RazorpaySuccessResponse) => void;
 }
 
 export interface RazorpaySuccessResponse {

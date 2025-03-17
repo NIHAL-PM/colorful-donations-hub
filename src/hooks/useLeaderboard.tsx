@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useDonations } from './useDonations';
 import type { Donor } from '@/components/LeaderboardCard';
@@ -6,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface LeaderboardContextType {
   leaderboard: Donor[];
-  topDonors: Donor[]; // Adding topDonors to the context type
   isLoading: boolean;
   error: Error | null;
   refreshLeaderboard: () => void;
@@ -92,11 +90,8 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setLastUpdate(Date.now());
   };
 
-  // Expose topDonors as the same as leaderboard for now
-  const topDonors = leaderboard;
-
   return (
-    <LeaderboardContext.Provider value={{ leaderboard, topDonors, isLoading, error, refreshLeaderboard }}>
+    <LeaderboardContext.Provider value={{ leaderboard, isLoading, error, refreshLeaderboard }}>
       {children}
     </LeaderboardContext.Provider>
   );

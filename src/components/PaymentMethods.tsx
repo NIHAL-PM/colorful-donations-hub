@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -50,9 +51,9 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
     
     try {
       if (paymentMethod === 'razorpay') {
+        // Use Razorpay integration
         initiateRazorpayPayment(
           {
-            key: 'rzp_test_bUcvzDQD7fGITt',
             amount: amount,
             currency: 'INR',
             name: 'Happiness Club',
@@ -70,6 +71,7 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
             }
           },
           (response) => {
+            // Payment successful
             console.log('Razorpay payment successful:', response);
             toast({
               title: 'Payment Successful',
@@ -79,14 +81,17 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
             setProcessing(false);
           },
           (error) => {
+            // Payment failed
             console.error('Razorpay payment failed:', error);
             setPaymentError('Payment failed. Please try again or use a different payment method.');
             setProcessing(false);
           }
         );
       } else {
+        // Simulate other payment methods
         await new Promise(resolve => setTimeout(resolve, 2000));
         
+        // Simulate a success most of the time
         const randomSuccess = Math.random() > 0.2;
         
         if (randomSuccess) {
