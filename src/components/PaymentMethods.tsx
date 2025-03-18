@@ -7,16 +7,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreditCard, Smartphone, Wallet, CheckCircle2, AlertCircle, Coffee } from 'lucide-react';
-import { initiateRazorpayPayment, generateReceiptId } from '@/services/razorpay';
+import { initiateRazorpayPayment, generateReceiptId, generateDonationReceipt, DonationReceipt } from '@/services/razorpay';
 import { toast } from '@/components/ui/use-toast';
+import DonationReceiptComponent from './DonationReceipt';
 
 interface PaymentMethodsProps {
-  onPaymentComplete: (amount: number, method: string) => void;
+  onPaymentComplete: (amount: number, method: string, receiptData?: DonationReceipt) => void;
   amount: number;
+  name: string;
+  email: string;
+  department?: string;
+  message?: string;
 }
 
-const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amount }) => {
+const DEPARTMENTS = [
+  "BCA", "BSc CS", "PSYCHOLOGY", "MULTIMEDIA", 
+  "BCOM PA", "BCOM CA", "MSC CS", "MSC PSYCHOLOGY", 
+  "MCA", "BBA", "OTHER"
+];
+
+const PaymentMethods: React.FC<PaymentMethodsProps> = ({ 
+  onPaymentComplete, 
+  amount, 
+  name, 
+  email, 
+  department,
+  message
+}) => {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
@@ -24,8 +43,11 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
   const [cardCvv, setCardCvv] = useState('');
   const [upiId, setUpiId] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [paymentError, setPaymentError] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState(department || '');
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receipt, setReceipt] = useState<DonationReceipt | null>(null);
 
   const formatCardNumber = (value: string) => {
     return value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
@@ -60,11 +82,12 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
             description: `Donation of ₹${amount}`,
             image: '/lovable-uploads/b8adb940-cf0a-4902-89fd-01b317af12a5.png',
             prefill: {
-              name: cardName || 'Donor',
-              email: 'donor@example.com',
+              name: name || cardName || 'Donor',
+              email: email || 'donor@example.com',
             },
             notes: {
-              address: 'Nilgiri College'
+              address: 'Nilgiri College',
+              department: selectedDepartment || department
             },
             theme: {
               color: '#4F9D69'
@@ -77,7 +100,20 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
               title: 'Payment Successful',
               description: `Payment ID: ${response.razorpay_payment_id}`,
             });
-            onPaymentComplete(amount, 'razorpay');
+            
+            // Generate receipt
+            const receiptData = generateDonationReceipt({
+              name: name || cardName || 'Donor',
+              email: email || 'donor@example.com',
+              amount: amount,
+              paymentId: response.razorpay_payment_id,
+              department: selectedDepartment || department,
+              message: message
+            });
+            
+            setReceipt(receiptData);
+            setShowReceipt(true);
+            onPaymentComplete(amount, 'razorpay', receiptData);
             setProcessing(false);
           },
           (error) => {
@@ -95,7 +131,21 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
         const randomSuccess = Math.random() > 0.2;
         
         if (randomSuccess) {
-          onPaymentComplete(amount, paymentMethod);
+          const paymentId = `pay_sim_${Math.random().toString(36).substring(2, 10)}`;
+          
+          // Generate receipt
+          const receiptData = generateDonationReceipt({
+            name: name || cardName || 'Donor',
+            email: email || 'donor@example.com',
+            amount: amount,
+            paymentId: paymentId,
+            department: selectedDepartment || department,
+            message: message
+          });
+          
+          setReceipt(receiptData);
+          setShowReceipt(true);
+          onPaymentComplete(amount, paymentMethod, receiptData);
         } else {
           setPaymentError('Payment failed. Please try again or use a different payment method.');
         }
@@ -110,13 +160,13 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
 
   const isCardPaymentValid = cardNumber.length >= 19 && cardName && cardExpiry.length === 5 && cardCvv.length >= 3;
   const isUpiPaymentValid = upiId.includes('@') && upiId.length > 3;
-  const isCashPaymentValid = true;
-  const isRazorpayValid = true;
+  const isCashPaymentValid = selectedDepartment !== '';
+  const isRazorpayValid = selectedDepartment !== '';
 
   const getPaymentValidity = () => {
     switch (paymentMethod) {
-      case 'card': return isCardPaymentValid;
-      case 'upi': return isUpiPaymentValid;
+      case 'card': return isCardPaymentValid && selectedDepartment !== '';
+      case 'upi': return isUpiPaymentValid && selectedDepartment !== '';
       case 'cash': return isCashPaymentValid;
       case 'razorpay': return isRazorpayValid;
       default: return false;
@@ -128,6 +178,15 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
     visible: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 }
   };
+
+  if (showReceipt && receipt) {
+    return (
+      <DonationReceiptComponent 
+        receipt={receipt} 
+        onClose={() => setShowReceipt(false)} 
+      />
+    );
+  }
 
   return (
     <motion.div
@@ -153,6 +212,30 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ onPaymentComplete, amou
               <p className="text-red-700 text-sm">{paymentError}</p>
             </motion.div>
           )}
+          
+          <div className="mb-4">
+            <Label htmlFor="department">Department</Label>
+            <Select 
+              value={selectedDepartment} 
+              onValueChange={setSelectedDepartment} 
+              required
+            >
+              <SelectTrigger 
+                id="department" 
+                className="w-full mt-1 glass-input border-gray-200 focus:border-donation-primary/50"
+              >
+                <SelectValue placeholder="Select your department" />
+              </SelectTrigger>
+              <SelectContent>
+                {DEPARTMENTS.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              This helps us track donations by department for our leaderboard
+            </p>
+          </div>
           
           <Tabs defaultValue="razorpay" onValueChange={setPaymentMethod}>
             <TabsList className="grid grid-cols-4 mb-6 bg-gray-100/70">

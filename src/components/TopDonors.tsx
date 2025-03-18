@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { motion } from 'framer-motion';
 
 const TopDonors: React.FC = () => {
   const { leaderboard } = useLeaderboard();
@@ -15,9 +16,12 @@ const TopDonors: React.FC = () => {
       <CardContent>
         <div className="space-y-2">
           {leaderboard.slice(0, 5).map((donor, index) => (
-            <div 
+            <motion.div 
               key={index} 
-              className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-donation-purple/20 flex items-center justify-center font-medium">
@@ -25,11 +29,19 @@ const TopDonors: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-medium">{donor.name}</div>
-                  <div className="text-xs text-gray-500">{new Date(donor.date).toLocaleDateString()}</div>
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <span>{new Date(donor.date).toLocaleDateString()}</span>
+                    {donor.department && (
+                      <>
+                        <span className="inline-block w-1 h-1 bg-gray-300 rounded-full"></span>
+                        <span className="text-donation-primary/80">{donor.department}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="font-bold">${donor.amount.toLocaleString()}</div>
-            </div>
+              <div className="font-bold">₹{donor.amount.toLocaleString('en-IN')}</div>
+            </motion.div>
           ))}
         </div>
       </CardContent>

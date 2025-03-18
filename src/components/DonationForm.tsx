@@ -4,14 +4,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Heart, ArrowRight, CreditCard } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Heart, ArrowRight, CreditCard, Share2, CheckCircle } from 'lucide-react';
 import PaymentMethods from './PaymentMethods';
 import { useDonations } from '@/hooks/useDonations';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { DonationReceipt } from '@/services/razorpay';
+import DonationReceiptComponent from './DonationReceipt';
 
 const presetAmounts = [500, 1000, 2000, 5000, 10000];
+
+const DEPARTMENTS = [
+  "BCA", "BSc CS", "PSYCHOLOGY", "MULTIMEDIA", 
+  "BCOM PA", "BCOM CA", "MSC CS", "MSC PSYCHOLOGY", 
+  "MCA", "BBA", "OTHER"
+];
 
 const DonationForm: React.FC = () => {
   const [amount, setAmount] = useState(1000);
@@ -19,8 +29,9 @@ const DonationForm: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-  const [showPayment, setShowPayment] = useState(false);
+  const [department, setDepartment] = useState('');
   const [step, setStep] = useState(1);
+  const [receipt, setReceipt] = useState<DonationReceipt | null>(null);
   const { addDonation } = useDonations();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -71,10 +82,19 @@ const DonationForm: React.FC = () => {
       return;
     }
     
+    if (!department) {
+      toast({
+        title: "Department required",
+        description: "Please select your department",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setStep(2);
   };
 
-  const handlePaymentComplete = (paidAmount: number, method: string) => {
+  const handlePaymentComplete = (paidAmount: number, method: string, receiptData?: DonationReceipt) => {
     addDonation({
       name,
       email,
@@ -82,7 +102,12 @@ const DonationForm: React.FC = () => {
       method,
       date: new Date().toISOString(),
       message: message,
+      department: department
     });
+    
+    if (receiptData) {
+      setReceipt(receiptData);
+    }
     
     setStep(3);
     toast({
@@ -193,6 +218,26 @@ const DonationForm: React.FC = () => {
               className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
             />
 
+            <div className="space-y-1">
+              <Label htmlFor="department">Department</Label>
+              <Select 
+                value={department} 
+                onValueChange={setDepartment}
+              >
+                <SelectTrigger 
+                  id="department" 
+                  className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+                >
+                  <SelectValue placeholder="Select your department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEPARTMENTS.map((dept) => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <Input
               placeholder="Optional message (why you're donating)"
               value={message}
@@ -213,7 +258,7 @@ const DonationForm: React.FC = () => {
               background: 'linear-gradient(90deg, #4F9D69 0%, #8FCFD1 100%)',
               boxShadow: '0 10px 15px -3px rgba(79, 157, 105, 0.2), 0 4px 6px -2px rgba(79, 157, 105, 0.1)'
             }}
-            disabled={amount <= 0 || !name || !email}
+            disabled={amount <= 0 || !name || !email || !department}
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer -translate-x-full group-hover:translate-x-full transition-all duration-1000"></div>
             <div className="flex items-center justify-center gap-2">
@@ -240,7 +285,14 @@ const DonationForm: React.FC = () => {
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
       >
-        <PaymentMethods onPaymentComplete={handlePaymentComplete} amount={amount} />
+        <PaymentMethods 
+          onPaymentComplete={handlePaymentComplete} 
+          amount={amount} 
+          name={name}
+          email={email}
+          department={department}
+          message={message}
+        />
         <Button 
           variant="outline"
           className="mt-4 w-full border-donation-primary/30 text-donation-primary hover:bg-donation-primary/10"
@@ -259,24 +311,28 @@ const DonationForm: React.FC = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="text-center py-10 space-y-6"
+        className="text-center py-6 space-y-6"
       >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 10 }}
-          className="w-24 h-24 bg-gradient-to-br from-green-100 to-donation-primary/20 rounded-full mx-auto flex items-center justify-center shadow-lg"
-        >
-          <Heart className="h-12 w-12 text-donation-primary" fill="rgba(79, 157, 105, 0.5)" />
-        </motion.div>
-        
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-donation-primary to-donation-secondary bg-clip-text text-transparent">Thank You!</h2>
-        
-        <p className="text-gray-600 max-w-md mx-auto">
-          Your donation of <span className="font-medium text-donation-primary">₹{amount.toLocaleString('en-IN')}</span> has been processed successfully. A confirmation email has been sent to {email}.
-        </p>
-        
-        <p className="text-sm text-gray-500 italic">Donation ID: {Math.random().toString(36).substring(2, 12).toUpperCase()}</p>
+        {receipt ? (
+          <DonationReceiptComponent receipt={receipt} />
+        ) : (
+          <>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 10 }}
+              className="w-24 h-24 bg-gradient-to-br from-green-100 to-donation-primary/20 rounded-full mx-auto flex items-center justify-center shadow-lg"
+            >
+              <CheckCircle className="h-12 w-12 text-donation-primary" />
+            </motion.div>
+            
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-donation-primary to-donation-secondary bg-clip-text text-transparent">Thank You!</h2>
+            
+            <p className="text-gray-600 max-w-md mx-auto">
+              Your donation of <span className="font-medium text-donation-primary">₹{amount.toLocaleString('en-IN')}</span> has been processed successfully. A confirmation email has been sent to {email}.
+            </p>
+          </>
+        )}
         
         <div className="pt-4 flex gap-4 justify-center">
           <Button 

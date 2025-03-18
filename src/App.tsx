@@ -10,6 +10,8 @@ import Leaderboard from "./pages/Leaderboard";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Blog from "./pages/Blog";
+import Receipt from "./pages/Receipt";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DonationsProvider } from "./hooks/useDonations";
 import { LeaderboardProvider } from "./hooks/useLeaderboard";
@@ -31,6 +33,8 @@ const App = () => (
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/receipt" element={<Receipt />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
