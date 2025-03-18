@@ -19,6 +19,9 @@ interface PaymentMethodsProps {
   name: string;
   email: string;
   department?: string;
+  year?: string;
+  donorType?: string;
+  anonymous?: boolean;
   message?: string;
 }
 
@@ -28,12 +31,19 @@ const DEPARTMENTS = [
   "MCA", "BBA", "OTHER"
 ];
 
+const YEARS = ["First Year", "Second Year", "Third Year", "Final Year"];
+
+const DONOR_TYPES = ["Student", "Faculty", "Alumni", "Well-wisher"];
+
 const PaymentMethods: React.FC<PaymentMethodsProps> = ({ 
   onPaymentComplete, 
   amount, 
   name, 
   email, 
   department,
+  year,
+  donorType,
+  anonymous,
   message
 }) => {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
@@ -46,6 +56,8 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [paymentError, setPaymentError] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState(department || '');
+  const [selectedYear, setSelectedYear] = useState(year || '');
+  const [selectedDonorType, setSelectedDonorType] = useState(donorType || 'Student');
   const [showReceipt, setShowReceipt] = useState(false);
   const [receipt, setReceipt] = useState<DonationReceipt | null>(null);
 
@@ -82,12 +94,15 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
             description: `Donation of ₹${amount}`,
             image: '/lovable-uploads/b8adb940-cf0a-4902-89fd-01b317af12a5.png',
             prefill: {
-              name: name || cardName || 'Donor',
+              name: anonymous ? 'Anonymous Donor' : (name || cardName || 'Donor'),
               email: email || 'donor@example.com',
             },
             notes: {
               address: 'Nilgiri College',
-              department: selectedDepartment || department
+              department: selectedDepartment || department || '',
+              year: selectedYear || year || '',
+              donorType: selectedDonorType || donorType || '',
+              anonymous: anonymous ? 'true' : 'false'
             },
             theme: {
               color: '#4F9D69'
@@ -103,11 +118,14 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
             
             // Generate receipt
             const receiptData = generateDonationReceipt({
-              name: name || cardName || 'Donor',
+              name: anonymous ? 'Anonymous Donor' : (name || cardName || 'Donor'),
               email: email || 'donor@example.com',
               amount: amount,
               paymentId: response.razorpay_payment_id,
               department: selectedDepartment || department,
+              year: selectedYear || year,
+              donorType: selectedDonorType || donorType,
+              anonymous: anonymous,
               message: message
             });
             
@@ -135,11 +153,14 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
           
           // Generate receipt
           const receiptData = generateDonationReceipt({
-            name: name || cardName || 'Donor',
+            name: anonymous ? 'Anonymous Donor' : (name || cardName || 'Donor'),
             email: email || 'donor@example.com',
             amount: amount,
             paymentId: paymentId,
             department: selectedDepartment || department,
+            year: selectedYear || year,
+            donorType: selectedDonorType || donorType,
+            anonymous: anonymous,
             message: message
           });
           
@@ -158,15 +179,97 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
     }
   };
 
+  const renderDonorTypeFields = () => {
+    if (anonymous) return null;
+    
+    return (
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Label htmlFor="donorType">I am a</Label>
+          <Select 
+            value={selectedDonorType} 
+            onValueChange={setSelectedDonorType} 
+          >
+            <SelectTrigger 
+              id="donorType" 
+              className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+            >
+              <SelectValue placeholder="Select donor type" />
+            </SelectTrigger>
+            <SelectContent>
+              {DONOR_TYPES.map((type) => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Department field only for students and faculty */}
+        {(selectedDonorType === 'Student' || selectedDonorType === 'Faculty') && (
+          <div className="space-y-1">
+            <Label htmlFor="department">Department</Label>
+            <Select 
+              value={selectedDepartment} 
+              onValueChange={setSelectedDepartment}
+              required
+            >
+              <SelectTrigger 
+                id="department" 
+                className="w-full mt-1 glass-input border-gray-200 focus:border-donation-primary/50"
+              >
+                <SelectValue placeholder="Select your department" />
+              </SelectTrigger>
+              <SelectContent>
+                {DEPARTMENTS.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              This helps us track donations by department for our leaderboard
+            </p>
+          </div>
+        )}
+
+        {/* Year field only for students */}
+        {selectedDonorType === 'Student' && (
+          <div className="space-y-1">
+            <Label htmlFor="year">Year</Label>
+            <Select 
+              value={selectedYear} 
+              onValueChange={setSelectedYear}
+              required
+            >
+              <SelectTrigger 
+                id="year" 
+                className="w-full mt-1 glass-input border-gray-200 focus:border-donation-primary/50"
+              >
+                <SelectValue placeholder="Select your year" />
+              </SelectTrigger>
+              <SelectContent>
+                {YEARS.map((yr) => (
+                  <SelectItem key={yr} value={yr}>{yr}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              This helps us track donations by year for our leaderboard
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const isCardPaymentValid = cardNumber.length >= 19 && cardName && cardExpiry.length === 5 && cardCvv.length >= 3;
   const isUpiPaymentValid = upiId.includes('@') && upiId.length > 3;
-  const isCashPaymentValid = selectedDepartment !== '';
-  const isRazorpayValid = selectedDepartment !== '';
+  const isCashPaymentValid = true;
+  const isRazorpayValid = true;
 
   const getPaymentValidity = () => {
     switch (paymentMethod) {
-      case 'card': return isCardPaymentValid && selectedDepartment !== '';
-      case 'upi': return isUpiPaymentValid && selectedDepartment !== '';
+      case 'card': return isCardPaymentValid;
+      case 'upi': return isUpiPaymentValid;
       case 'cash': return isCashPaymentValid;
       case 'razorpay': return isRazorpayValid;
       default: return false;
@@ -213,31 +316,10 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
             </motion.div>
           )}
           
-          <div className="mb-4">
-            <Label htmlFor="department">Department</Label>
-            <Select 
-              value={selectedDepartment} 
-              onValueChange={setSelectedDepartment} 
-              required
-            >
-              <SelectTrigger 
-                id="department" 
-                className="w-full mt-1 glass-input border-gray-200 focus:border-donation-primary/50"
-              >
-                <SelectValue placeholder="Select your department" />
-              </SelectTrigger>
-              <SelectContent>
-                {DEPARTMENTS.map((dept) => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-500 mt-1">
-              This helps us track donations by department for our leaderboard
-            </p>
-          </div>
+          {/* Donor Type Fields */}
+          {renderDonorTypeFields()}
           
-          <Tabs defaultValue="razorpay" onValueChange={setPaymentMethod}>
+          <Tabs defaultValue="razorpay" onValueChange={setPaymentMethod} className="mt-4">
             <TabsList className="grid grid-cols-4 mb-6 bg-gray-100/70">
               <TabsTrigger value="razorpay" className="flex items-center gap-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
                 <Coffee size={16} />

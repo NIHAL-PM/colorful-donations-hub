@@ -11,6 +11,9 @@ export interface Donor {
   rank: number;
   previousRank?: number;
   department?: string;
+  year?: string;
+  donorType?: string;
+  anonymous?: boolean;
 }
 
 interface DepartmentStats {
@@ -21,10 +24,28 @@ interface DepartmentStats {
   previousRank?: number;
 }
 
+interface YearStats {
+  year: string;
+  totalAmount: number;
+  donorCount: number;
+  rank: number;
+  previousRank?: number;
+}
+
+interface DonorTypeStats {
+  type: string;
+  totalAmount: number;
+  donorCount: number;
+  rank: number;
+  previousRank?: number;
+}
+
 interface LeaderboardContextType {
   leaderboard: Donor[];
   topDonors: Donor[];
   departmentStats: DepartmentStats[];
+  yearStats: YearStats[];
+  donorTypeStats: DonorTypeStats[];
   isLoading: boolean;
   error: Error | null;
   refreshLeaderboard: () => void;
@@ -36,6 +57,8 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const { donations, isLoading: isDonationsLoading } = useDonations();
   const [leaderboard, setLeaderboard] = useState<Donor[]>([]);
   const [departmentStats, setDepartmentStats] = useState<DepartmentStats[]>([]);
+  const [yearStats, setYearStats] = useState<YearStats[]>([]);
+  const [donorTypeStats, setDonorTypeStats] = useState<DonorTypeStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
@@ -50,12 +73,28 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
         // Get the previous leaderboard for rank comparison
         const prevLeaderboard = [...leaderboard];
         const prevDepartmentStats = [...departmentStats];
+        const prevYearStats = [...yearStats];
+        const prevDonorTypeStats = [...donorTypeStats];
         
         // Group donations by email and sum amounts
-        const donorMap = new Map<string, { total: number, name: string, date: string, department?: string }>();
+        const donorMap = new Map<string, { 
+          total: number, 
+          name: string, 
+          date: string, 
+          department?: string,
+          year?: string,
+          donorType?: string,
+          anonymous?: boolean
+        }>();
         
         // Department statistics map
         const deptMap = new Map<string, { totalAmount: number, donorCount: number }>();
+        
+        // Year statistics map
+        const yearMap = new Map<string, { totalAmount: number, donorCount: number }>();
+        
+        // Donor type statistics map
+        const donorTypeMap = new Map<string, { totalAmount: number, donorCount: number }>();
         
         donations.forEach(donation => {
           const key = donation.email;
@@ -70,13 +109,25 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
               if (donation.department) {
                 existing.department = donation.department;
               }
+              if (donation.year) {
+                existing.year = donation.year;
+              }
+              if (donation.donorType) {
+                existing.donorType = donation.donorType;
+              }
+              if (donation.anonymous !== undefined) {
+                existing.anonymous = donation.anonymous;
+              }
             }
           } else {
             donorMap.set(key, {
               total: donation.amount,
               name: donation.name,
               date: donation.date,
-              department: donation.department
+              department: donation.department,
+              year: donation.year,
+              donorType: donation.donorType,
+              anonymous: donation.anonymous
             });
           }
           
@@ -93,6 +144,34 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
               });
             }
           }
+          
+          // Process year data
+          if (donation.year) {
+            const year = yearMap.get(donation.year);
+            if (year) {
+              year.totalAmount += donation.amount;
+              year.donorCount += 1;
+            } else {
+              yearMap.set(donation.year, {
+                totalAmount: donation.amount,
+                donorCount: 1
+              });
+            }
+          }
+          
+          // Process donor type data
+          if (donation.donorType) {
+            const type = donorTypeMap.get(donation.donorType);
+            if (type) {
+              type.totalAmount += donation.amount;
+              type.donorCount += 1;
+            } else {
+              donorTypeMap.set(donation.donorType, {
+                totalAmount: donation.amount,
+                donorCount: 1
+              });
+            }
+          }
         });
         
         // Convert to array and sort by amount
@@ -102,12 +181,15 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
           
           return {
             id: email,
-            name: data.name,
+            name: data.anonymous ? 'Anonymous Donor' : data.name,
             amount: data.total,
             date: data.date,
             rank: index + 1,
             previousRank: prevEntry?.rank,
-            department: data.department
+            department: data.department,
+            year: data.year,
+            donorType: data.donorType,
+            anonymous: data.anonymous
           };
         });
         
@@ -140,8 +222,52 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
           dept.rank = index + 1;
         });
         
+        // Calculate year statistics
+        const newYearStats = Array.from(yearMap.entries()).map(([year, data], index) => {
+          const prevYear = prevYearStats.find(y => y.year === year);
+          
+          return {
+            year,
+            totalAmount: data.totalAmount,
+            donorCount: data.donorCount,
+            rank: index + 1,
+            previousRank: prevYear?.rank
+          };
+        });
+        
+        // Sort years by total amount
+        newYearStats.sort((a, b) => b.totalAmount - a.totalAmount);
+        
+        // Update ranks
+        newYearStats.forEach((year, index) => {
+          year.rank = index + 1;
+        });
+        
+        // Calculate donor type statistics
+        const newDonorTypeStats = Array.from(donorTypeMap.entries()).map(([type, data], index) => {
+          const prevType = prevDonorTypeStats.find(t => t.type === type);
+          
+          return {
+            type,
+            totalAmount: data.totalAmount,
+            donorCount: data.donorCount,
+            rank: index + 1,
+            previousRank: prevType?.rank
+          };
+        });
+        
+        // Sort donor types by total amount
+        newDonorTypeStats.sort((a, b) => b.totalAmount - a.totalAmount);
+        
+        // Update ranks
+        newDonorTypeStats.forEach((type, index) => {
+          type.rank = index + 1;
+        });
+        
         setLeaderboard(newLeaderboard);
         setDepartmentStats(newDepartmentStats);
+        setYearStats(newYearStats);
+        setDonorTypeStats(newDonorTypeStats);
       } catch (err) {
         setError(err as Error);
         console.error('Error calculating leaderboard:', err);
@@ -165,6 +291,8 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
       leaderboard, 
       topDonors, 
       departmentStats, 
+      yearStats,
+      donorTypeStats,
       isLoading, 
       error, 
       refreshLeaderboard 

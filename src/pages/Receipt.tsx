@@ -20,16 +20,22 @@ const ReceiptPage: React.FC = () => {
     const amount = searchParams.get('amount');
     const dateStr = searchParams.get('date');
     const department = searchParams.get('department');
+    const year = searchParams.get('year');
+    const donorType = searchParams.get('donorType');
+    const anonymous = searchParams.get('anonymous') === 'true';
     
     if (id && name && amount && dateStr) {
       setReceipt({
         receiptId: id,
-        name: name,
+        name: anonymous ? 'Anonymous Donor' : name,
         amount: parseFloat(amount),
         date: new Date(dateStr),
         email: searchParams.get('email') || 'donor@example.com',
         paymentId: searchParams.get('paymentId') || 'pay_demo',
         department: department || undefined,
+        year: year || undefined,
+        donorType: donorType || undefined,
+        anonymous: anonymous,
         message: searchParams.get('message') || undefined
       });
     }

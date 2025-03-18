@@ -13,6 +13,9 @@ interface Donation {
   message?: string;
   user_id?: string;
   department?: string;
+  year?: string;
+  anonymous?: boolean;
+  donorType?: string;
 }
 
 interface DonationsContextType {
@@ -52,7 +55,10 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           date: donation.date,
           message: donation.message,
           user_id: donation.user_id,
-          department: donation.department
+          department: donation.department,
+          year: donation.year,
+          anonymous: donation.anonymous,
+          donorType: donation.donorType
         })));
       }
     } catch (err) {
@@ -99,13 +105,16 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .from('donations')
         .insert([
           {
-            name: donation.name,
+            name: donation.anonymous ? 'Anonymous Donor' : donation.name,
             email: donation.email,
             amount: donation.amount,
             method: donation.method,
             user_id: user_id || null,
             message: donation.message || null,
             department: donation.department || null,
+            year: donation.year || null,
+            anonymous: donation.anonymous || false,
+            donorType: donation.donorType || null
             // date is set by default in the database
           }
         ])

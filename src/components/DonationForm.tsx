@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Heart, ArrowRight, CreditCard, Share2, CheckCircle } from 'lucide-react';
 import PaymentMethods from './PaymentMethods';
 import { useDonations } from '@/hooks/useDonations';
@@ -23,6 +24,10 @@ const DEPARTMENTS = [
   "MCA", "BBA", "OTHER"
 ];
 
+const YEARS = ["First Year", "Second Year", "Third Year", "Final Year"];
+
+const DONOR_TYPES = ["Student", "Faculty", "Alumni", "Well-wisher"];
+
 const DonationForm: React.FC = () => {
   const [amount, setAmount] = useState(1000);
   const [customAmount, setCustomAmount] = useState('');
@@ -30,6 +35,9 @@ const DonationForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [department, setDepartment] = useState('');
+  const [year, setYear] = useState('');
+  const [donorType, setDonorType] = useState('Student');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [step, setStep] = useState(1);
   const [receipt, setReceipt] = useState<DonationReceipt | null>(null);
   const { addDonation } = useDonations();
@@ -73,19 +81,28 @@ const DonationForm: React.FC = () => {
       return;
     }
     
-    if (!name || !email || !email.includes('@')) {
+    if (!isAnonymous && (!name || !email || !email.includes('@'))) {
       toast({
         title: "Missing information",
-        description: "Please provide your name and a valid email address",
+        description: "Please provide your name and a valid email address or choose to donate anonymously",
         variant: "destructive",
       });
       return;
     }
     
-    if (!department) {
+    if (!department && donorType === 'Student') {
       toast({
         title: "Department required",
         description: "Please select your department",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!year && donorType === 'Student') {
+      toast({
+        title: "Year required",
+        description: "Please select your year of study",
         variant: "destructive",
       });
       return;
@@ -102,7 +119,10 @@ const DonationForm: React.FC = () => {
       method,
       date: new Date().toISOString(),
       message: message,
-      department: department
+      department: department,
+      year: year,
+      donorType: donorType,
+      anonymous: isAnonymous
     });
     
     if (receiptData) {
@@ -203,40 +223,120 @@ const DonationForm: React.FC = () => {
           </div>
           
           <div className="space-y-3">
-            <Input
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
-            />
-            
-            <Input
-              type="email"
-              placeholder="Your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
-            />
-
-            <div className="space-y-1">
-              <Label htmlFor="department">Department</Label>
-              <Select 
-                value={department} 
-                onValueChange={setDepartment}
-              >
-                <SelectTrigger 
-                  id="department" 
-                  className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
-                >
-                  <SelectValue placeholder="Select your department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DEPARTMENTS.map((dept) => (
-                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center space-x-2 mb-2">
+              <Checkbox id="anonymous" checked={isAnonymous} onCheckedChange={(checked) => setIsAnonymous(checked === true)} />
+              <Label htmlFor="anonymous" className="cursor-pointer">Donate anonymously</Label>
             </div>
+            
+            {!isAnonymous && (
+              <>
+                <Input
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+                />
+                
+                <Input
+                  type="email"
+                  placeholder="Your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+                />
+              </>
+            )}
+            
+            {/* Only shown if not anonymous */}
+            {!isAnonymous && (
+              <div className="space-y-1">
+                <Label htmlFor="donorType">I am a</Label>
+                <Select 
+                  value={donorType} 
+                  onValueChange={setDonorType}
+                >
+                  <SelectTrigger 
+                    id="donorType" 
+                    className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+                  >
+                    <SelectValue placeholder="Select donor type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DONOR_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Show department and year only for students */}
+            {donorType === 'Student' && !isAnonymous && (
+              <>
+                <div className="space-y-1">
+                  <Label htmlFor="department">Department</Label>
+                  <Select 
+                    value={department} 
+                    onValueChange={setDepartment}
+                  >
+                    <SelectTrigger 
+                      id="department" 
+                      className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+                    >
+                      <SelectValue placeholder="Select your department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEPARTMENTS.map((dept) => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="year">Year</Label>
+                  <Select 
+                    value={year} 
+                    onValueChange={setYear}
+                  >
+                    <SelectTrigger 
+                      id="year" 
+                      className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+                    >
+                      <SelectValue placeholder="Select your year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YEARS.map((yr) => (
+                        <SelectItem key={yr} value={yr}>{yr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            {/* Only show department for faculty */}
+            {donorType === 'Faculty' && !isAnonymous && (
+              <div className="space-y-1">
+                <Label htmlFor="department">Department</Label>
+                <Select 
+                  value={department} 
+                  onValueChange={setDepartment}
+                >
+                  <SelectTrigger 
+                    id="department" 
+                    className="glass-input backdrop-blur-md border-donation-primary/20 focus:border-donation-primary/40"
+                  >
+                    <SelectValue placeholder="Select your department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEPARTMENTS.map((dept) => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <Input
               placeholder="Optional message (why you're donating)"
@@ -258,7 +358,7 @@ const DonationForm: React.FC = () => {
               background: 'linear-gradient(90deg, #4F9D69 0%, #8FCFD1 100%)',
               boxShadow: '0 10px 15px -3px rgba(79, 157, 105, 0.2), 0 4px 6px -2px rgba(79, 157, 105, 0.1)'
             }}
-            disabled={amount <= 0 || !name || !email || !department}
+            disabled={amount <= 0 || (!isAnonymous && (!name || !email))}
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer -translate-x-full group-hover:translate-x-full transition-all duration-1000"></div>
             <div className="flex items-center justify-center gap-2">
@@ -288,9 +388,12 @@ const DonationForm: React.FC = () => {
         <PaymentMethods 
           onPaymentComplete={handlePaymentComplete} 
           amount={amount} 
-          name={name}
+          name={isAnonymous ? 'Anonymous Donor' : name}
           email={email}
           department={department}
+          year={year}
+          donorType={donorType}
+          anonymous={isAnonymous}
           message={message}
         />
         <Button 
