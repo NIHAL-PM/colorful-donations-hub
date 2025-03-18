@@ -32,9 +32,9 @@ const DonationList: React.FC = () => {
     
     if (filterType === 'all') return matchesSearch;
     if (filterType === 'anonymous' && donation.anonymous) return matchesSearch;
-    if (filterType === 'student' && donation.donor_type === 'Student') return matchesSearch;
-    if (filterType === 'faculty' && donation.donor_type === 'Faculty') return matchesSearch;
-    if (filterType === 'alumni' && donation.donor_type === 'Alumni') return matchesSearch;
+    if (filterType === 'student' && donation.donorType === 'Student') return matchesSearch;
+    if (filterType === 'faculty' && donation.donorType === 'Faculty') return matchesSearch;
+    if (filterType === 'alumni' && donation.donorType === 'Alumni') return matchesSearch;
     
     return false;
   });
@@ -53,7 +53,7 @@ const DonationList: React.FC = () => {
           new Date(d.date).toLocaleDateString(),
           d.department || '',
           d.year || '',
-          d.donor_type || '',
+          d.donorType || '',
           d.anonymous ? 'Yes' : 'No'
         ].join(',')
       )
@@ -175,9 +175,9 @@ const DonationList: React.FC = () => {
                         )}
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        {donation.donor_type ? (
+                        {donation.donorType ? (
                           <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                            {donation.donor_type}
+                            {donation.donorType}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>
