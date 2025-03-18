@@ -25,7 +25,7 @@ const ReceiptPage: React.FC = () => {
     const anonymous = searchParams.get('anonymous') === 'true';
     
     if (id && name && amount && dateStr) {
-      setReceipt({
+      const receiptData: Receipt = {
         receiptId: id,
         name: anonymous ? 'Anonymous Donor' : name,
         amount: parseFloat(amount),
@@ -33,11 +33,23 @@ const ReceiptPage: React.FC = () => {
         email: searchParams.get('email') || 'donor@example.com',
         paymentId: searchParams.get('paymentId') || 'pay_demo',
         department: department || undefined,
-        year: year || undefined,
-        donorType: donorType || undefined,
-        anonymous: anonymous,
         message: searchParams.get('message') || undefined
-      });
+      };
+      
+      // Add year and donorType only if they exist in search params
+      if (year) {
+        receiptData.year = year;
+      }
+      
+      if (donorType) {
+        receiptData.donorType = donorType;
+      }
+      
+      if (anonymous) {
+        receiptData.anonymous = anonymous;
+      }
+      
+      setReceipt(receiptData);
     }
   }, [searchParams]);
   
