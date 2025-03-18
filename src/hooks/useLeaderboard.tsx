@@ -113,7 +113,7 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 existing.year = donation.year;
               }
               if (donation.donorType) {
-                existing.donorType = donation.donorType;
+                existing.donorType = donation.donor_type; // Fixed property name here
               }
               if (donation.anonymous !== undefined) {
                 existing.anonymous = donation.anonymous;
@@ -126,7 +126,7 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
               date: donation.date,
               department: donation.department,
               year: donation.year,
-              donorType: donation.donorType,
+              donorType: donation.donor_type, // Fixed property name here
               anonymous: donation.anonymous
             });
           }
@@ -160,13 +160,13 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
           }
           
           // Process donor type data
-          if (donation.donorType) {
-            const type = donorTypeMap.get(donation.donorType);
+          if (donation.donor_type) { // Fixed property name here
+            const type = donorTypeMap.get(donation.donor_type);
             if (type) {
               type.totalAmount += donation.amount;
               type.donorCount += 1;
             } else {
-              donorTypeMap.set(donation.donorType, {
+              donorTypeMap.set(donation.donor_type, {
                 totalAmount: donation.amount,
                 donorCount: 1
               });
