@@ -134,3 +134,151 @@ export const generateDonationReceipt = (options: GenerateDonationReceiptOptions)
     message: options.message
   };
 };
+
+/**
+ * Downloads the receipt as a PDF
+ */
+export const downloadReceiptAsPDF = (receipt: DonationReceipt) => {
+  // For now, we'll just create a printable version that can be saved as PDF using browser print dialog
+  // In a production environment, you'd want to use a proper PDF generation library
+  const receiptWindow = window.open('', '_blank');
+  if (receiptWindow) {
+    receiptWindow.document.write(`
+      <html>
+        <head>
+          <title>Donation Receipt - ${receipt.receiptId}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            .receipt { max-width: 800px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+            .title { text-align: center; margin-bottom: 20px; }
+            .amount { font-size: 24px; text-align: center; margin: 20px 0; padding: 10px; background: #f9f9f9; }
+            .info { margin-bottom: 20px; }
+            .row { display: flex; margin-bottom: 10px; }
+            .label { font-weight: bold; width: 150px; }
+            .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #666; }
+            .btn-print { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #4F9D69; color: white; border: none; cursor: pointer; }
+            @media print {
+              .btn-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="receipt">
+            <div class="header">
+              <div>
+                <img src="/lovable-uploads/b8adb940-cf0a-4902-89fd-01b317af12a5.png" alt="Happiness Club" style="height: 40px;" />
+              </div>
+              <div>
+                <img src="/lovable-uploads/dc5f60a7-e574-4624-9179-84afebf69ff9.png" alt="Nilgiri College" style="height: 40px;" />
+              </div>
+            </div>
+            
+            <div class="title">
+              <h1>Donation Receipt</h1>
+              <p>Receipt ID: ${receipt.receiptId}</p>
+              <p>Date: ${receipt.date.toLocaleDateString()}</p>
+            </div>
+            
+            <div class="amount">
+              ₹${receipt.amount.toLocaleString('en-IN')}
+            </div>
+            
+            <div class="info">
+              <div class="row">
+                <div class="label">Donor Name:</div>
+                <div>${receipt.name}</div>
+              </div>
+              <div class="row">
+                <div class="label">Email:</div>
+                <div>${receipt.email}</div>
+              </div>
+              ${receipt.department ? `
+              <div class="row">
+                <div class="label">Department:</div>
+                <div>${receipt.department}</div>
+              </div>
+              ` : ''}
+              ${receipt.year ? `
+              <div class="row">
+                <div class="label">Year:</div>
+                <div>${receipt.year}</div>
+              </div>
+              ` : ''}
+              ${receipt.donorType ? `
+              <div class="row">
+                <div class="label">Donor Type:</div>
+                <div>${receipt.donorType}</div>
+              </div>
+              ` : ''}
+              <div class="row">
+                <div class="label">Payment ID:</div>
+                <div>${receipt.paymentId}</div>
+              </div>
+              ${receipt.message ? `
+              <div class="row">
+                <div class="label">Message:</div>
+                <div>${receipt.message}</div>
+              </div>
+              ` : ''}
+            </div>
+            
+            <div class="footer">
+              <p>Thank you for your generous contribution to the Happiness Club at Nilgiri College.</p>
+              <p>This receipt serves as confirmation of your donation.</p>
+            </div>
+            
+            <button class="btn-print" onclick="window.print()">Print Receipt</button>
+          </div>
+        </body>
+      </html>
+    `);
+    receiptWindow.document.close();
+    receiptWindow.focus();
+  }
+};
+
+/**
+ * Shares the receipt via web share API or fallback options
+ */
+export const shareReceipt = async (receipt: DonationReceipt) => {
+  // Construct receipt URL for sharing
+  const params = new URLSearchParams();
+  params.append('id', receipt.receiptId);
+  params.append('name', receipt.name);
+  params.append('amount', receipt.amount.toString());
+  params.append('date', receipt.date.toISOString());
+  params.append('email', receipt.email);
+  params.append('paymentId', receipt.paymentId);
+  if (receipt.department) params.append('department', receipt.department);
+  if (receipt.year) params.append('year', receipt.year);
+  if (receipt.donorType) params.append('donorType', receipt.donorType);
+  if (receipt.anonymous) params.append('anonymous', 'true');
+  if (receipt.message) params.append('message', receipt.message);
+  
+  const receiptUrl = `${window.location.origin}/receipt?${params.toString()}`;
+  
+  // Try to use Web Share API if available
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Donation Receipt',
+        text: `My donation of ₹${receipt.amount} to Happiness Club at Nilgiri College`,
+        url: receiptUrl
+      });
+      return;
+    } catch (error) {
+      console.error('Error sharing receipt:', error);
+      // Fall back to clipboard if share fails
+    }
+  }
+  
+  // Fallback to clipboard
+  try {
+    await navigator.clipboard.writeText(receiptUrl);
+    alert('Receipt link copied to clipboard! You can share it manually.');
+  } catch (error) {
+    console.error('Failed to copy receipt link:', error);
+    alert('Could not share receipt. Please try again or manually share this page.');
+  }
+};

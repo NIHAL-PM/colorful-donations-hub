@@ -4,8 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Share, Printer, Copy, Download, ThumbsUp } from 'lucide-react';
-import { DonationReceipt as Receipt } from '@/services/razorpay';
-import { downloadReceiptAsPDF, shareReceipt } from '@/services/razorpay';
+import { DonationReceipt as Receipt, downloadReceiptAsPDF, shareReceipt } from '@/services/razorpay';
 import { toast } from '@/components/ui/use-toast';
 
 interface DonationReceiptProps {
