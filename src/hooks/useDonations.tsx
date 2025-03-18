@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,7 +57,7 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           department: donation.department,
           year: donation.year,
           anonymous: donation.anonymous,
-          donorType: donation.donorType
+          donor_type: donation.donorType
         })));
       }
     } catch (err) {
@@ -114,7 +113,7 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             department: donation.department || null,
             year: donation.year || null,
             anonymous: donation.anonymous || false,
-            donorType: donation.donorType || null
+            donor_type: donation.donorType || null
             // date is set by default in the database
           }
         ])

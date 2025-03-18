@@ -12,33 +12,45 @@ export type Database = {
       donations: {
         Row: {
           amount: number
+          anonymous: boolean | null
           date: string
+          department: string | null
+          donor_type: string | null
           email: string
           id: string
           message: string | null
           method: string
           name: string
           user_id: string | null
+          year: string | null
         }
         Insert: {
           amount: number
+          anonymous?: boolean | null
           date?: string
+          department?: string | null
+          donor_type?: string | null
           email: string
           id?: string
           message?: string | null
           method: string
           name: string
           user_id?: string | null
+          year?: string | null
         }
         Update: {
           amount?: number
+          anonymous?: boolean | null
           date?: string
+          department?: string | null
+          donor_type?: string | null
           email?: string
           id?: string
           message?: string | null
           method?: string
           name?: string
           user_id?: string | null
+          year?: string | null
         }
         Relationships: []
       }
