@@ -57,7 +57,7 @@ export const DonationsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           department: donation.department,
           year: donation.year,
           anonymous: donation.anonymous,
-          donor_type: donation.donorType
+          donorType: donation.donor_type
         })));
       }
     } catch (err) {
