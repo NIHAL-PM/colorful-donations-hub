@@ -113,7 +113,7 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 existing.year = donation.year;
               }
               if (donation.donorType) {
-                existing.donorType = donation.donorType; // Updated to donorType
+                existing.donorType = donation.donorType;
               }
               if (donation.anonymous !== undefined) {
                 existing.anonymous = donation.anonymous;
@@ -126,7 +126,7 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
               date: donation.date,
               department: donation.department,
               year: donation.year,
-              donorType: donation.donorType, // Updated to donorType
+              donorType: donation.donorType,
               anonymous: donation.anonymous
             });
           }
@@ -160,7 +160,7 @@ export const LeaderboardProvider: React.FC<{ children: React.ReactNode }> = ({ c
           }
           
           // Process donor type data
-          if (donation.donorType) { // Updated to donorType
+          if (donation.donorType) {
             const type = donorTypeMap.get(donation.donorType);
             if (type) {
               type.totalAmount += donation.amount;

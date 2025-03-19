@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Home, Heart, Award, LogIn, LogOut, User, LayoutDashboard } from 'lucide-react';
+import { Home, Heart, Award, LogIn, LogOut, User, LayoutDashboard, BookOpen } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,6 +74,18 @@ const Navbar = () => {
               <Link to="/leaderboard" className="flex items-center space-x-1">
                 <Award className="h-4 w-4" />
                 <span>Leaderboard</span>
+              </Link>
+            </Button>
+            
+            <Button 
+              variant={isActive('/blog') ? "default" : "ghost"} 
+              size="sm" 
+              asChild
+              className={isActive('/blog') ? "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20" : ""}
+            >
+              <Link to="/blog" className="flex items-center space-x-1">
+                <BookOpen className="h-4 w-4" />
+                <span>Blog</span>
               </Link>
             </Button>
             
