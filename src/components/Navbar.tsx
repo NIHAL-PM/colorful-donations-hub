@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Home, Heart, Award, LogIn, LogOut, User, LayoutDashboard, Menu, X } from 'lucide-react';
+import { Home, Heart, Award, LogIn, LogOut, User, LayoutDashboard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,23 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/contexts/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
   
   const isActive = (path: string) => location.pathname === path;
   
@@ -36,26 +24,9 @@ const Navbar = () => {
     logout();
     navigate('/');
   };
-
-  const navLinks = [
-    { path: '/', icon: <Home className="h-4 w-4" />, label: 'Home', color: 'donation-primary' },
-    { path: '/donate', icon: <Heart className="h-4 w-4" />, label: 'Donate', color: 'donation-secondary' },
-    { path: '/leaderboard', icon: <Award className="h-4 w-4" />, label: 'Leaderboard', color: 'donation-accent' },
-  ];
-
-  if (user?.isAdmin) {
-    navLinks.push({ 
-      path: '/admin', 
-      icon: <LayoutDashboard className="h-4 w-4" />, 
-      label: 'Admin', 
-      color: 'blue-500'
-    });
-  }
   
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-white/50 backdrop-blur-sm'
-    }`}>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/50 backdrop-blur-md shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
@@ -69,114 +40,97 @@ const Navbar = () => {
             </span>
           </Link>
           
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center justify-center space-x-1">
-            {navLinks.map(link => (
+            <Button 
+              variant={isActive('/') ? "default" : "ghost"} 
+              size="sm" 
+              asChild
+              className={isActive('/') ? "bg-donation-primary/10 text-donation-primary hover:bg-donation-primary/20" : ""}
+            >
+              <Link to="/" className="flex items-center space-x-1">
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Link>
+            </Button>
+            
+            <Button 
+              variant={isActive('/donate') ? "default" : "ghost"} 
+              size="sm" 
+              asChild
+              className={isActive('/donate') ? "bg-donation-secondary/10 text-donation-secondary hover:bg-donation-secondary/20" : ""}
+            >
+              <Link to="/donate" className="flex items-center space-x-1">
+                <Heart className="h-4 w-4" />
+                <span>Donate</span>
+              </Link>
+            </Button>
+            
+            <Button 
+              variant={isActive('/leaderboard') ? "default" : "ghost"} 
+              size="sm" 
+              asChild
+              className={isActive('/leaderboard') ? "bg-donation-accent/10 text-donation-accent hover:bg-donation-accent/20" : ""}
+            >
+              <Link to="/leaderboard" className="flex items-center space-x-1">
+                <Award className="h-4 w-4" />
+                <span>Leaderboard</span>
+              </Link>
+            </Button>
+            
+            {user?.isAdmin && (
               <Button 
-                key={link.path}
-                variant={isActive(link.path) ? "default" : "ghost"} 
+                variant={isActive('/admin') ? "default" : "ghost"} 
                 size="sm" 
                 asChild
-                className={isActive(link.path) ? `bg-${link.color}/10 text-${link.color} hover:bg-${link.color}/20` : ""}
+                className={isActive('/admin') ? "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20" : ""}
               >
-                <Link to={link.path} className="flex items-center space-x-1">
-                  {link.icon}
-                  <span>{link.label}</span>
+                <Link to="/admin" className="flex items-center space-x-1">
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Admin</span>
                 </Link>
               </Button>
-            ))}
+            )}
           </nav>
           
-          {/* User menu or login button */}
           <div className="flex items-center">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <User className="h-5 w-5" />
-                    </motion.div>
+                    <User className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white/95 backdrop-blur-md border border-gray-200 shadow-lg rounded-xl p-2 w-56">
+                <DropdownMenuContent align="end" className="bg-white">
                   <DropdownMenuLabel>
                     <div className="font-normal text-sm text-gray-500">Signed in as</div>
                     <div className="font-medium">{user.name}</div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {user.isAdmin && (
-                    <DropdownMenuItem asChild className="rounded-lg">
-                      <Link to="/admin" className="cursor-pointer flex items-center py-2">
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer">
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         <span>Admin Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-500 cursor-pointer rounded-lg">
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-500 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button variant="ghost" size="sm" asChild className="rounded-full">
-                  <Link to="/login" className="flex items-center space-x-1">
-                    <LogIn className="h-4 w-4" />
-                    <span>Login</span>
-                  </Link>
-                </Button>
-              </motion.div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/login" className="flex items-center space-x-1">
+                  <LogIn className="h-4 w-4" />
+                  <span>Login</span>
+                </Link>
+              </Button>
             )}
-            
-            {/* Mobile menu toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden ml-2"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
           </div>
         </div>
       </div>
-      
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-lg"
-          >
-            <div className="container mx-auto p-4 space-y-2">
-              {navLinks.map(link => (
-                <Button
-                  key={link.path}
-                  variant={isActive(link.path) ? "default" : "ghost"}
-                  size="sm"
-                  asChild
-                  className={`w-full justify-start ${isActive(link.path) ? `bg-${link.color}/10 text-${link.color}` : ""}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Link to={link.path} className="flex items-center space-x-2">
-                    {link.icon}
-                    <span>{link.label}</span>
-                  </Link>
-                </Button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </header>
   );
 };
