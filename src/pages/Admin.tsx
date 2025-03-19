@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 const Admin = () => {
   const { user, isLoading } = useAuth();
   const [isMakingAdmin, setIsMakingAdmin] = useState(false);
+  const [isConfirmingEmail, setIsConfirmingEmail] = useState(false);
   
   useEffect(() => {
     const makeUserAdmin = async () => {
@@ -65,6 +66,33 @@ const Admin = () => {
       setIsMakingAdmin(false);
     }
   };
+
+  const handleConfirmEmail = async () => {
+    try {
+      setIsConfirmingEmail(true);
+      
+      const { data, error } = await supabase.functions.invoke('confirm-email', {
+        body: { email: 'admin@happydonation.com' }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Success",
+        description: data.message || "Email has been confirmed",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to confirm email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConfirmingEmail(false);
+    }
+  };
   
   // Show loading state while checking authentication
   if (isLoading) {
@@ -90,13 +118,23 @@ const Admin = () => {
             <h1 className="text-2xl font-bold mb-4">Admin Access Required</h1>
             <p className="text-gray-600 mb-6">You need admin privileges to access this page.</p>
             
-            <Button 
-              onClick={handleMakeAdmin} 
-              disabled={isMakingAdmin}
-              className="w-full"
-            >
-              {isMakingAdmin ? 'Setting Admin Status...' : 'Make mailnihalpm@gmail.com Admin'}
-            </Button>
+            <div className="space-y-4">
+              <Button 
+                onClick={handleMakeAdmin} 
+                disabled={isMakingAdmin}
+                className="w-full"
+              >
+                {isMakingAdmin ? 'Setting Admin Status...' : 'Make mailnihalpm@gmail.com Admin'}
+              </Button>
+              
+              <Button 
+                onClick={handleConfirmEmail} 
+                disabled={isConfirmingEmail}
+                className="w-full bg-amber-500 hover:bg-amber-600"
+              >
+                {isConfirmingEmail ? 'Confirming Email...' : 'Confirm admin@happydonation.com Email'}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
