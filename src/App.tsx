@@ -4,6 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { DonationsProvider } from "./hooks/useDonations";
+import { LeaderboardProvider } from "./hooks/useLeaderboard";
 import Index from "./pages/Index";
 import Donate from "./pages/Donate";
 import Leaderboard from "./pages/Leaderboard";
@@ -12,11 +15,16 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import Receipt from "./pages/Receipt";
-import { AuthProvider } from "./contexts/AuthContext";
-import { DonationsProvider } from "./hooks/useDonations";
-import { LeaderboardProvider } from "./hooks/useLeaderboard";
 
-const queryClient = new QueryClient();
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -35,7 +43,6 @@ const App = () => (
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/receipt" element={<Receipt />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
